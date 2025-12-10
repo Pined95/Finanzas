@@ -2,8 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Titanium v4.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SmartFinance | Titanium 5.1</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0b0f19">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5501/5501360.png">
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -15,9 +20,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v4.0 === */
+        /* === TITANIUM DESIGN SYSTEM v5.1 === */
         :root { 
-            --bg: #050505; 
+            --bg: #000000; 
             --app-bg: #0b0f19;
             --card-bg: #151b2b; 
             --input-bg: #1e2532;
@@ -42,24 +47,37 @@
             background: var(--bg); 
             color: var(--text); 
             margin: 0; 
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             justify-content: center;
-            background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #050505 50%);
-            overflow-y: hidden; /* Prevent body scroll, handle in app-container */
+            overflow: hidden; /* El scroll lo maneja el container */
         }
 
-        /* App Container */
+        /* App Container (Simulador Móvil en PC) */
         #app-container {
             width: 100%;
             max-width: 480px; 
             background: var(--app-bg);
-            height: 100vh;
+            height: 100%;
             position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            overflow-y: auto; /* Scroll interno */
-            padding-bottom: calc(100px + var(--safe-bottom));
+            box-shadow: 0 0 50px rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
         }
+
+        /* Área de Scroll Principal */
+        #main-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: calc(100px + var(--safe-bottom));
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Scrollbar PC */
+        #main-scroll::-webkit-scrollbar { width: 6px; }
+        #main-scroll::-webkit-scrollbar-track { background: var(--app-bg); }
+        #main-scroll::-webkit-scrollbar-thumb { background: var(--input-bg); border-radius: 3px; }
 
         /* Utilidades */
         .hidden { display: none !important; }
@@ -69,21 +87,25 @@
         .font-bold { font-weight: 700; }
         .text-muted { color: var(--text-muted); }
         
-        /* === PRIVACY BLUR 2.0 (No Glitch) === */
+        /* Privacy Blur Logic (Fantasma) */
         body.privacy-active .privacy-target { 
             color: transparent !important;
-            text-shadow: 0 0 10px rgba(255,255,255,0.7);
-            pointer-events: none; /* Previene copiar texto borroso */
+            text-shadow: 0 0 12px rgba(255,255,255,0.5);
+            pointer-events: none; 
             user-select: none;
         }
 
-        /* Loading */
-        #loading-overlay { position: absolute; inset: 0; background: var(--app-bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s; pointer-events: none; opacity: 0; }
-        #loading-overlay.active { opacity: 1; pointer-events: all; position: fixed; }
+        /* Loading Overlay */
+        #loading-overlay { position: absolute; inset: 0; background: var(--app-bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.4s; }
+        #loading-overlay.fade-out { opacity: 0; pointer-events: none; }
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(99, 102, 241, 0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 
-        /* Login Screen */
-        #auth-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
+        /* Login Screen & Biometrics */
+        #auth-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; background: radial-gradient(circle at top, #1e1b4b, var(--app-bg)); }
+        
+        /* Animación Biometría Simulada */
+        .biometric-scan { width: 60px; height: 60px; border: 2px solid var(--primary); border-radius: 16px; margin-bottom: 20px; position: relative; overflow: hidden; display: none; }
+        .biometric-scan::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: scan 1.5s infinite alternate; }
         
         /* Header & Nav */
         .container { padding: 20px; opacity: 0; transform: translateY(10px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -116,7 +138,7 @@
         .stat-item span:first-child { display: block; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
         .stat-item span:last-child { font-size: 1rem; font-weight: 700; }
 
-        /* Tarjetas & Drag-Drop */
+        /* Tarjetas */
         .acc-wrapper { position: relative; display: flex; align-items: center; }
         .scroll-btn { position: absolute; z-index: 10; background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; backdrop-filter: blur(4px); }
         .scroll-left { left: 0; } .scroll-right { right: 0; }
@@ -124,7 +146,6 @@
         .acc-list { display: flex; overflow-x: auto; gap: 16px; padding: 0 5px 20px; width: 100%; scroll-behavior: smooth; }
         .acc-list::-webkit-scrollbar { display: none; }
         
-        /* Clase para cuando se está arrastrando */
         .sortable-ghost { opacity: 0.4; transform: scale(0.95); }
         .sortable-drag { cursor: grabbing; }
 
@@ -135,10 +156,10 @@
         .progress-bar-fill { height: 100%; transition: width 0.5s ease; border-radius: 3px; }
         .card-meta { display: flex; justify-content: space-between; font-size: 0.7rem; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); color: var(--text-muted); }
         
-        /* Botones de Copiar en Tarjeta */
         .copy-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; }
         .mini-btn { width: 28px; height: 28px; border-radius: 8px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.7rem; }
         .mini-btn:hover { background: var(--primary); }
+        .currency-badge { font-size: 0.6rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 6px; vertical-align: middle; margin-left: 5px; color: var(--accent); font-weight: 700; }
 
         /* Transactions */
         .section-title { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin: 25px 0 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
@@ -189,99 +210,108 @@
         .menu-grid { display: grid; gap: 10px; }
         .menu-btn { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
         
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div id="app-container">
-    <div id="loading-overlay"><div class="spinner"></div><div style="margin-top:20px; font-weight:600; letter-spacing:1px; font-size:0.9rem">CARGANDO...</div></div>
+    <div id="loading-overlay"><div class="spinner"></div><div style="margin-top:20px; font-weight:600; letter-spacing:1px; font-size:0.9rem">INICIANDO...</div></div>
 
     <div id="auth-screen">
         <div style="width:80px; height:80px; background:var(--primary); border-radius:24px; display:flex; align-items:center; justify-content:center; margin-bottom:30px; box-shadow:0 0 40px rgba(99,102,241,0.4)">
             <i class="fas fa-chart-line" style="font-size: 2.5rem; color: white;"></i>
         </div>
         <h1 style="margin:0; font-weight:800; font-size:2.5rem">SmartFinance</h1>
-        <p style="color:var(--text-muted); margin-bottom:50px;">Titanium v4.0</p>
+        <p style="color:var(--text-muted); margin-bottom:50px;">Titanium v5.1</p>
+        
+        <div id="bio-btn" class="hidden" style="margin-bottom:20px; cursor:pointer" onclick="loginBiometric()">
+            <div class="biometric-scan" id="bio-scan" style="display:block; margin:0 auto 10px"></div>
+            <div style="color:var(--accent); font-weight:700">Usar Acceso Rápido</div>
+        </div>
+
         <button class="btn btn-primary" style="max-width:300px" onclick="login()">
-            <i class="fab fa-google"></i> Acceso Seguro
+            <i class="fab fa-google"></i> Continuar con Google
         </button>
     </div>
 
-    <div class="container" id="app-screen" style="display:none">
-        
-        <div class="header flex-between">
-            <div>
-                <div style="display:flex; gap:10px; align-items:center">
-                    <small class="font-bold text-muted">PORTAFOLIO DE</small>
-                    <div class="privacy-toggle" onclick="togglePrivacy()">
-                        <i class="fas fa-eye-slash" id="privacy-icon"></i> <span id="privacy-label">Oculto</span>
+    <div id="main-scroll">
+        <div class="container" id="app-screen" style="display:none">
+            
+            <div class="header flex-between">
+                <div>
+                    <div style="display:flex; gap:10px; align-items:center">
+                        <small class="font-bold text-muted">PORTAFOLIO DE</small>
+                        <div class="privacy-toggle" onclick="togglePrivacy()">
+                            <i class="fas fa-eye-slash" id="privacy-icon"></i> <span id="privacy-label">Oculto</span>
+                        </div>
                     </div>
+                    <h2 id="uName" style="margin:5px 0 0; font-weight:800">Usuario</h2>
                 </div>
-                <h2 id="uName" style="margin:5px 0 0; font-weight:800">Usuario</h2>
-            </div>
-            <div style="display:flex; gap:10px">
-                <div onclick="openModal('modalSettings')" style="width:44px; height:44px; background:rgba(255,255,255,0.05); border-radius:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.05)"><i class="fas fa-cog"></i></div>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <div class="tab-btn active" id="tabMe" onclick="setFilter('me')">Mío</div>
-            <div class="tab-btn locked" id="tabPartner" onclick="unlockSync('partner')">Pareja</div>
-            <div class="tab-btn locked" id="tabAll" onclick="unlockSync('all')">Conjunto</div>
-        </div>
-
-        <div class="widget brain-widget">
-            <div class="brain-content">
-                <div class="flex-between" style="margin-bottom:10px;">
-                    <span class="font-bold text-sm" style="color:#e0e7ff; letter-spacing:1px"><i class="fas fa-robot"></i> ASESOR CFO</span>
-                    <span id="brain-badge" class="text-xs" style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:20px; font-weight:700">EN LÍNEA</span>
+                <div style="display:flex; gap:10px">
+                    <div onclick="openModal('modalSettings')" style="width:44px; height:44px; background:rgba(255,255,255,0.05); border-radius:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid rgba(255,255,255,0.05)"><i class="fas fa-cog"></i></div>
                 </div>
-                <div id="brain-msg" style="font-size:1.1rem; font-weight:600; color:white; line-height:1.4;">Analizando flujo de caja operativo...</div>
             </div>
-            <div class="brain-actions">
-                <button class="brain-btn" onclick="openStrategyModal()"><i class="fas fa-chess-knight"></i> ESTRATEGIA</button>
-                <button class="brain-btn" onclick="openModal('modalPlanning')"><i class="fas fa-chart-line"></i> PROYECCIONES</button>
+
+            <div class="tabs">
+                <div class="tab-btn active" id="tabMe" onclick="setFilter('me')">Mío</div>
+                <div class="tab-btn locked" id="tabPartner" onclick="unlockSync('partner')">Pareja</div>
+                <div class="tab-btn locked" id="tabAll" onclick="unlockSync('all')">Conjunto</div>
             </div>
-        </div>
 
-        <div class="widget summary-card">
-            <div class="flex-between">
-                <small class="font-bold text-muted">POSICIÓN NETA (Excluye Cobros)</small>
-                <div onclick="openChartModal()" style="cursor:pointer; padding:5px; background:rgba(255,255,255,0.1); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center"><i class="fas fa-chart-pie text-muted"></i></div>
+            <div class="widget brain-widget">
+                <div class="brain-content">
+                    <div class="flex-between" style="margin-bottom:10px;">
+                        <span class="font-bold text-sm" style="color:#e0e7ff; letter-spacing:1px"><i class="fas fa-robot"></i> ASESOR CFO</span>
+                        <span id="brain-badge" class="text-xs" style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:20px; font-weight:700">EN LÍNEA</span>
+                    </div>
+                    <div id="brain-msg" style="font-size:1.1rem; font-weight:600; color:white; line-height:1.4;">Analizando flujo de caja operativo...</div>
+                </div>
+                <div class="brain-actions">
+                    <button class="brain-btn" onclick="openStrategyModal()"><i class="fas fa-chess-knight"></i> ESTRATEGIA</button>
+                    <button class="brain-btn" onclick="openModal('modalPlanning')"><i class="fas fa-chart-line"></i> PROYECCIONES</button>
+                </div>
             </div>
-            <div class="net-val privacy-target" id="netDisplay">$0.00</div>
-            <div class="stat-grid">
-                <div class="stat-item"><span>Activos Líquidos</span><span style="color:var(--success)" id="assetDisplay" class="privacy-target">--</span></div>
-                <div class="stat-item"><span>Pasivos Totales</span><span style="color:var(--danger)" id="debtDisplay" class="privacy-target">--</span></div>
-                <div class="stat-item"><span>Cuentas x Cobrar</span><span style="color:var(--pending)" id="pendDisplay" class="privacy-target">--</span></div>
+
+            <div class="widget summary-card">
+                <div class="flex-between">
+                    <small class="font-bold text-muted">POSICIÓN NETA (MXN EQ)</small>
+                    <div onclick="openChartModal()" style="cursor:pointer; padding:5px; background:rgba(255,255,255,0.1); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center"><i class="fas fa-chart-pie text-muted"></i></div>
+                </div>
+                <div class="net-val privacy-target" id="netDisplay">$0.00</div>
+                <div class="stat-grid">
+                    <div class="stat-item"><span>Liquidez Total</span><span style="color:var(--success)" id="assetDisplay" class="privacy-target">--</span></div>
+                    <div class="stat-item"><span>Pasivos Totales</span><span style="color:var(--danger)" id="debtDisplay" class="privacy-target">--</span></div>
+                    <div class="stat-item"><span>Cuentas x Cobrar</span><span style="color:var(--pending)" id="pendDisplay" class="privacy-target">--</span></div>
+                </div>
             </div>
-        </div>
 
-        <div class="section-title">
-            <span>Instrumentos (Arrastra para Ordenar)</span>
-            <span style="color:var(--primary); font-size:0.75rem; cursor:pointer" onclick="openAccModal()">+ Añadir</span>
-        </div>
-        
-        <div class="filter-scroll">
-            <div class="filter-pill active" id="ft-all" onclick="setTypeFilter('all')">Todos</div>
-            <div class="filter-pill" id="ft-debit" onclick="setTypeFilter('debit')"><i class="fas fa-wallet"></i> Líquido</div>
-            <div class="filter-pill" id="ft-credit" onclick="setTypeFilter('credit')"><i class="fas fa-credit-card"></i> Crédito</div>
-            <div class="filter-pill" id="ft-receivable" onclick="setTypeFilter('receivable')"><i class="fas fa-hand-holding-dollar"></i> CxC</div>
-        </div>
+            <div class="section-title">
+                <span>Instrumentos (Arrastra para Ordenar)</span>
+                <span style="color:var(--primary); font-size:0.75rem; cursor:pointer" onclick="openAccModal()">+ Añadir</span>
+            </div>
+            
+            <div class="filter-scroll">
+                <div class="filter-pill active" id="ft-all" onclick="setTypeFilter('all')">Todos</div>
+                <div class="filter-pill" id="ft-debit" onclick="setTypeFilter('debit')"><i class="fas fa-wallet"></i> Líquido</div>
+                <div class="filter-pill" id="ft-credit" onclick="setTypeFilter('credit')"><i class="fas fa-credit-card"></i> Crédito</div>
+                <div class="filter-pill" id="ft-receivable" onclick="setTypeFilter('receivable')"><i class="fas fa-hand-holding-dollar"></i> CxC</div>
+            </div>
 
-        <div class="acc-wrapper">
-            <div class="scroll-btn scroll-left" onclick="scrollAcc(-1)"><i class="fas fa-chevron-left"></i></div>
-            <div class="acc-list" id="accList"></div>
-            <div class="scroll-btn scroll-right" onclick="scrollAcc(1)"><i class="fas fa-chevron-right"></i></div>
-        </div>
+            <div class="acc-wrapper">
+                <div class="scroll-btn scroll-left" onclick="scrollAcc(-1)"><i class="fas fa-chevron-left"></i></div>
+                <div class="acc-list" id="accList"></div>
+                <div class="scroll-btn scroll-right" onclick="scrollAcc(1)"><i class="fas fa-chevron-right"></i></div>
+            </div>
 
-        <div class="section-title" style="margin-top:10px">
-            <span>Flujo de Efectivo</span>
-            <input type="month" id="dateFilter" style="background:transparent; border:none; color:var(--text); font-weight:700; font-family:inherit; font-size:0.8rem; text-align:right; cursor:pointer" onchange="loadTransactions()">
-        </div>
-        <div id="txList" class="tx-list" style="min-height:150px; padding-bottom: 20px;"></div>
+            <div class="section-title" style="margin-top:10px">
+                <span>Flujo de Efectivo</span>
+                <input type="month" id="dateFilter" style="background:transparent; border:none; color:var(--text); font-weight:700; font-family:inherit; font-size:0.8rem; text-align:right; cursor:pointer" onchange="loadTransactions()">
+            </div>
+            <div id="txList" class="tx-list" style="min-height:150px; padding-bottom: 20px;"></div>
 
+        </div>
     </div>
 
     <div class="fab" onclick="openModal('modalMenu')"><i class="fas fa-plus"></i></div>
@@ -327,10 +357,7 @@
 <div class="modal" id="modalChart">
     <div class="sheet">
         <h3>Composición Patrimonial</h3>
-        <p class="text-xs text-muted">Distribución de Activos vs Pasivos.</p>
-        <div style="width:100%; max-width:350px; margin:0 auto">
-            <canvas id="myChart" width="300" height="300"></canvas>
-        </div>
+        <div style="width:100%; max-width:350px; margin:0 auto"><canvas id="myChart" width="300" height="300"></canvas></div>
         <button class="btn btn-text" onclick="closeModal('modalChart')">Cerrar</button>
     </div>
 </div>
@@ -339,14 +366,17 @@
     <div class="sheet">
         <h3>Configuración del Sistema</h3>
         <div class="input-group">
-            <label>Titular (Mi Sobrenombre)</label>
-            <input id="confMe" placeholder="Yo">
-        </div>
-        <div class="input-group">
-            <label>Socio (Sobrenombre Pareja)</label>
-            <input id="confPartner" placeholder="Pareja">
+            <label>Titular</label><input id="confMe" placeholder="Yo">
         </div>
         
+        <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0">
+        
+        <label style="color:var(--warning)">💱 Tipos de Cambio (Manuales)</label>
+        <div class="row-2">
+            <div class="input-group"><label>USD a MXN</label><input type="number" id="rateUSD" step="0.01"></div>
+            <div class="input-group"><label>EUR a MXN</label><input type="number" id="rateEUR" step="0.01"></div>
+        </div>
+
         <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0">
         
         <label style="color:var(--accent)">🔗 Vinculación Patrimonial</label>
@@ -357,14 +387,8 @@
                 <button class="btn btn-primary" style="width:auto; margin:0" onclick="copyId()"><i class="fas fa-copy"></i></button>
             </div>
         </div>
-        <div class="input-group">
-            <label>Credencial de Socio (ID)</label>
-            <input id="partnerIdInput" placeholder="Pega el ID aquí">
-        </div>
-        <div class="input-group">
-            <label>Clave Conjunto (PIN)</label>
-            <input type="password" id="householdPin" maxlength="4" placeholder="0000" style="text-align:center; letter-spacing:5px">
-        </div>
+        <div class="input-group"><label>Credencial de Socio</label><input id="partnerIdInput" placeholder="Pega el ID aquí"></div>
+        <div class="input-group"><label>Clave Conjunto (PIN)</label><input type="password" id="householdPin" maxlength="4" placeholder="0000" style="text-align:center; letter-spacing:5px"></div>
 
         <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0">
 
@@ -388,15 +412,19 @@
             <input type="hidden" id="editAccId">
             <div class="input-group"><label>Denominación</label><input type="text" id="accName" required></div>
             <div class="row-2">
+                <div class="input-group"><label>Divisa</label><select id="accCurrency"><option value="MXN">MXN (Pesos)</option><option value="USD">USD (Dólares)</option><option value="EUR">EUR (Euros)</option></select></div>
+                <div class="input-group"><label>Orden</label><input type="number" id="accOrder"></div>
+            </div>
+            <div class="row-2">
                 <div class="input-group"><label>Clasificación</label><select id="accType" onchange="toggleFields()"><option value="debit">Efectivo/Débito</option><option value="credit">Crédito</option><option value="receivable">Por Cobrar</option></select></div>
                 <div class="input-group"><label>Titularidad</label><select id="accOwner"><option value="me">Personal</option><option value="partner">Pareja</option><option value="joint">Mancomunado</option></select></div>
             </div>
             <div class="input-group"><label>Saldo Actual</label><input type="number" id="accBalance" step="0.01" required></div>
             
             <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:16px; margin-bottom:15px;">
-                 <label style="color:var(--info)"><i class="fas fa-lock"></i> Datos Sensibles (Privados)</label>
+                 <label style="color:var(--info)"><i class="fas fa-lock"></i> Datos Sensibles</label>
                  <div class="row-2">
-                     <div class="input-group"><label>No. Tarjeta (4 últ)</label><input type="text" id="accCard"></div>
+                     <div class="input-group"><label>No. Tarjeta</label><input type="text" id="accCard"></div>
                      <div class="input-group"><label>CLABE</label><input type="text" id="accClabe"></div>
                  </div>
             </div>
@@ -447,9 +475,7 @@
         </div>
         <form id="formTx">
             <input type="hidden" id="editTxId"><input type="hidden" id="txMode" value="expense">
-            <div class="input-group">
-                <input type="number" id="txAmount" placeholder="$0.00" step="0.01" style="font-size:2rem; text-align:center; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.2); border-radius:0" required>
-            </div>
+            <div class="input-group"><input type="number" id="txAmount" placeholder="$0.00" step="0.01" style="font-size:2rem; text-align:center; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.2); border-radius:0" required></div>
             <div class="input-group"><input type="text" id="txDesc" placeholder="Concepto" required></div>
             <div class="row-2">
                 <div class="input-group"><label>Fecha</label><input type="date" id="txDate" required></div>
@@ -494,7 +520,6 @@
     <div class="sheet" style="text-align:center">
         <i class="fas fa-lock" style="font-size:2rem; margin-bottom:20px; color:var(--accent)"></i>
         <h3>Acceso Restringido</h3>
-        <p>Autenticación Requerida (PIN)</p>
         <input type="password" id="unlockPin" maxlength="4" style="text-align:center; font-size:2rem; letter-spacing:10px; width:150px; margin:20px auto; background:transparent; border:none; border-bottom:2px solid var(--primary); border-radius:0">
         <button class="btn btn-primary" onclick="checkPin()">Validar Acceso</button>
         <button class="btn btn-text" onclick="closeModal('modalLock')">Cancelar</button>
@@ -518,50 +543,92 @@
         user: null, accounts: [], txs: [], planning: [],
         filter: 'me', typeFilter: 'all', privacy: true, unlocked: false,
         settings: JSON.parse(localStorage.getItem('sf_opts')) || { pin:'0000', partnerId: '', me:'Yo', partner:'Pareja' },
+        rates: JSON.parse(localStorage.getItem('sf_rates')) || { 'MXN': 1, 'USD': 20.50, 'EUR': 22.10 },
         buffer: parseFloat(localStorage.getItem('sf_buffer')) || 0
     };
 
     const $ = (id) => document.getElementById(id);
     const val = (id) => $(id).value;
     const num = (id) => parseFloat($(id).value) || 0;
-    const fmt = (n) => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n);
-    const loading = (show) => $('loading-overlay').classList.toggle('active', show);
+    const fmt = (n, c='MXN') => new Intl.NumberFormat('es-MX',{style:'currency',currency:c}).format(n);
+    const loading = (show) => {
+        const el = $('loading-overlay');
+        if(show) { el.classList.remove('fade-out'); }
+        else { el.classList.add('fade-out'); }
+    };
+    
+    // Safety Force Load
+    setTimeout(() => loading(false), 4000);
+
     const openModal = (id) => $(id).classList.add('open');
     const closeModal = (id) => $(id).classList.remove('open');
-    
-    // Privacy Logic 2.0 (No glitch)
     window.togglePrivacy = () => {
         state.privacy = !state.privacy;
         document.body.classList.toggle('privacy-active', state.privacy);
         $('privacy-label').innerText = state.privacy ? "Oculto" : "Visible";
         $('privacy-icon').className = state.privacy ? "fas fa-eye-slash" : "fas fa-eye";
     };
-
     window.scrollAcc = (dir) => { $('accList').scrollLeft += (dir * 300); };
 
-    auth.onAuthStateChanged(u => {
-        if(u) {
-            state.user = u;
-            $('auth-screen').style.display = 'none'; $('app-screen').style.display = 'block';
-            setTimeout(() => $('app-screen').classList.add('loaded'), 100);
-            
-            // Labels
-            updateLabels();
-            $('myIdDisplay').value = u.uid;
-            $('partnerIdInput').value = state.settings.partnerId || '';
-            $('householdPin').value = state.settings.pin;
-            $('stratBuffer').value = state.buffer;
-            $('confMe').value = state.settings.me;
-            $('confPartner').value = state.settings.partner;
-            
-            if(state.privacy) document.body.classList.add('privacy-active');
-            
-            loadData();
-            initSortable();
-        } else {
-            $('auth-screen').style.display = 'flex'; $('app-screen').style.display = 'none';
+    // Notification Logic
+    function checkNotifications() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "granted") {
+            runDeadlineCheck();
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") runDeadlineCheck();
+            });
         }
+    }
+
+    function runDeadlineCheck() {
+        const today = new Date().getDate();
+        state.accounts.forEach(a => {
+            if (a.type === 'credit' && a.payDay) {
+                const diff = a.payDay - today;
+                if (diff >= 0 && diff <= 3) {
+                    new Notification("📅 Recordatorio de Pago", { body: `Tu tarjeta ${a.name} vence en ${diff} días.` });
+                }
+            }
+        });
+    }
+
+    // Auth & Init
+    document.addEventListener('DOMContentLoaded', () => {
+        auth.onAuthStateChanged(u => {
+            if(u) {
+                handleUserLogin(u);
+            } else {
+                $('auth-screen').style.display = 'flex'; $('app-screen').style.display = 'none';
+                // Checar si hay persistencia para mostrar botón "Biometría"
+                if(localStorage.getItem('sf_last_user')) $('bio-btn').classList.remove('hidden');
+            }
+        });
     });
+
+    function handleUserLogin(u) {
+        state.user = u;
+        localStorage.setItem('sf_last_user', u.email); // Token simple
+        $('auth-screen').style.display = 'none'; $('app-screen').style.display = 'block';
+        setTimeout(() => $('app-screen').classList.add('loaded'), 100);
+        
+        updateLabels();
+        $('myIdDisplay').value = u.uid;
+        $('partnerIdInput').value = state.settings.partnerId || '';
+        $('householdPin').value = state.settings.pin;
+        $('stratBuffer').value = state.buffer;
+        $('confMe').value = state.settings.me;
+        $('confPartner').value = state.settings.partner;
+        $('rateUSD').value = state.rates['USD'];
+        $('rateEUR').value = state.rates['EUR'];
+        
+        if(state.privacy) document.body.classList.add('privacy-active');
+        
+        loadData();
+        initSortable();
+        checkNotifications();
+    }
 
     function updateLabels() {
         $('uName').innerText = state.settings.me;
@@ -571,6 +638,18 @@
 
     window.login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
     window.logout = () => auth.signOut();
+    
+    // Biometric Simulation
+    window.loginBiometric = () => {
+        const scan = $('bio-scan');
+        $('bio-btn').style.display = 'none';
+        scan.style.display = 'block';
+        setTimeout(() => {
+            // Check Firebase persistence (usually holds session)
+            if(auth.currentUser) handleUserLogin(auth.currentUser);
+            else { alert("Sesión caducada. Inicia con Google."); scan.style.display = 'none'; $('bio-btn').style.display = 'block'; }
+        }, 1500);
+    };
 
     function loadData() {
         loading(true);
@@ -578,59 +657,36 @@
             state.accounts = [];
             snap.forEach(doc => {
                 const d = doc.data();
-                const vault = d.vault || {}; 
-                state.accounts.push({
-                    id: doc.id, ...d,
-                    cut: d.cut || vault.cut || 0,
-                    payDay: d.payDay || vault.payDay || 0,
-                    min: d.min || vault.minPay || 0,
-                    noInt: d.noInt || vault.statementBal || 0,
-                    limit: d.limit || 0,
-                    card: d.card || vault.card || '',
-                    clabe: d.clabe || ''
-                });
+                state.accounts.push({ id: doc.id, ...d, currency: d.currency || 'MXN' });
             });
             render();
             loading(false);
         });
-        
         db.collection('planning').onSnapshot(snap => {
             state.planning = [];
             snap.forEach(doc => state.planning.push({id: doc.id, ...doc.data()}));
             renderPlanning();
         });
-        
         loadTransactions();
     }
 
     function initSortable() {
-        new Sortable($('accList'), {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            delay: 200, // Touch delay
-            delayOnTouchOnly: true,
-            onEnd: function (evt) {
-                // Actualizar orden en DB
-                const items = $('accList').children;
-                const batch = db.batch();
-                Array.from(items).forEach((item, index) => {
-                    const id = item.getAttribute('data-id');
-                    if(id) batch.update(db.collection('accounts').doc(id), { order: index });
-                });
-                batch.commit();
-            }
-        });
+        new Sortable($('accList'), { animation: 150, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', delay: 200, delayOnTouchOnly: true, onEnd: function (evt) {
+            const items = $('accList').children; const batch = db.batch();
+            Array.from(items).forEach((item, index) => { const id = item.getAttribute('data-id'); if(id) batch.update(db.collection('accounts').doc(id), { order: index }); });
+            batch.commit();
+        }});
     }
 
     function loadTransactions() {
         const m = val('dateFilter') || new Date().toISOString().slice(0,7);
-        const start = m + "-01";
-        const d = new Date(m+"-01"); d.setMonth(d.getMonth()+1); d.setDate(0); 
-        const end = m + "-" + d.getDate();
-        db.collection('transactions').where('date','>=',start).where('date','<=',end).orderBy('date','desc').onSnapshot(snap => {
-            state.txs = []; snap.forEach(doc => state.txs.push({id: doc.id, ...doc.data()})); renderTxs();
-        });
+        const start = m + "-01"; const d = new Date(m+"-01"); d.setMonth(d.getMonth()+1); d.setDate(0); const end = m + "-" + d.getDate();
+        db.collection('transactions').where('date','>=',start).where('date','<=',end).orderBy('date','desc').onSnapshot(snap => { state.txs = []; snap.forEach(doc => state.txs.push({id: doc.id, ...doc.data()})); renderTxs(); });
+    }
+
+    function toMXN(amount, currency) {
+        if(currency === 'MXN') return amount;
+        return amount * (state.rates[currency] || 1);
     }
 
     function render() {
@@ -654,54 +710,30 @@
         visibleAccs.sort((a,b) => (a.order || 99) - (b.order || 99));
 
         visibleAccs.forEach(a => {
-            if(a.type === 'credit') debt += parseFloat(a.balance); 
-            else if(a.type === 'receivable') pending += parseFloat(a.balance);
-            else assets += parseFloat(a.balance);
+            const balMXN = toMXN(parseFloat(a.balance), a.currency);
+            if(a.type === 'credit') debt += balMXN; 
+            else if(a.type === 'receivable') pending += balMXN;
+            else assets += balMXN;
 
             let extra = '';
             if(a.type === 'credit') {
                 const limit = parseFloat(a.limit) || 1;
-                const balance = parseFloat(a.balance);
-                const percent = (balance / limit) * 100;
+                const percent = (parseFloat(a.balance) / limit) * 100;
                 let color = 'var(--success)';
-                if(percent > 30) color = 'var(--warning)';
-                if(percent > 70) color = 'var(--danger)';
-
-                extra = `<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(percent,100)}%; background:${color}"></div></div>
-                         <div class="card-meta"><span>Uso: ${percent.toFixed(0)}%</span><span>Corte: ${a.cut || '--'}</span></div>`;
+                if(percent > 30) color = 'var(--warning)'; if(percent > 70) color = 'var(--danger)';
+                extra = `<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(percent,100)}%; background:${color}"></div></div><div class="card-meta"><span>Uso: ${percent.toFixed(0)}%</span><span>Corte: ${a.cut || '--'}</span></div>`;
             } else if (a.type === 'receivable') {
                  extra = `<div class="card-meta" style="color:var(--pending)"><span><i class="fas fa-clock"></i> Pendiente de cobro</span></div>`;
             }
             
-            // Nickname Logic
             let ownerLabel = a.owner === 'me' ? state.settings.me : (a.owner === 'partner' ? state.settings.partner : 'Compartido');
-
-            const card = document.createElement('div');
-            card.className = 'bank-card';
-            card.setAttribute('data-id', a.id);
+            const card = document.createElement('div'); card.className = 'bank-card'; card.setAttribute('data-id', a.id);
             const cardColor = a.type==='receivable' ? '#b45309' : getBankColor(a.name);
             card.style.background = `linear-gradient(135deg, ${cardColor}, #10141d)`;
             const icon = a.type==='credit'?'fa-credit-card':(a.type==='receivable'?'fa-hand-holding-dollar':'fa-wallet');
             
-            card.innerHTML = `
-                <div class="copy-actions">
-                    ${a.clabe ? `<div class="mini-btn" onclick="copyText(event, '${a.clabe}')">CL</div>` : ''}
-                    ${a.card ? `<div class="mini-btn" onclick="copyText(event, '${a.card}')">TC</div>` : ''}
-                </div>
-                <div>
-                    <div class="flex-between"><i class="fas ${icon}" style="opacity:0.6"></i> <small>${ownerLabel.toUpperCase()}</small></div>
-                    <div class="font-bold" style="font-size:1.1rem; margin-top:10px">${a.name}</div>
-                </div>
-                <div>
-                    <div class="privacy-target" style="font-size:1.5rem; font-weight:800">${fmt(a.balance)}</div>
-                    ${extra}
-                </div>
-            `;
-            // Drag or Click
-            card.onclick = (e) => { 
-                if(e.target.classList.contains('mini-btn')) return;
-                openEditAcc(a); 
-            };
+            card.innerHTML = `<div class="copy-actions">${a.currency !== 'MXN' ? `<div class="currency-badge">${a.currency}</div>` : ''}${a.clabe ? `<div class="mini-btn" onclick="copyText(event, '${a.clabe}')">CL</div>` : ''}${a.card ? `<div class="mini-btn" onclick="copyText(event, '${a.card}')">TC</div>` : ''}</div><div><div class="flex-between"><i class="fas ${icon}" style="opacity:0.6"></i> <small>${ownerLabel.toUpperCase()}</small></div><div class="font-bold" style="font-size:1.1rem; margin-top:10px">${a.name}</div></div><div><div class="privacy-target" style="font-size:1.5rem; font-weight:800">${fmt(a.balance, a.currency)}</div>${extra}</div>`;
+            card.onclick = (e) => { if(e.target.classList.contains('mini-btn')) return; openEditAcc(a); };
             list.appendChild(card);
         });
 
@@ -709,16 +741,10 @@
         $('assetDisplay').innerText = fmt(assets);
         $('debtDisplay').innerText = fmt(debt);
         $('pendDisplay').innerText = fmt(pending);
-        
         runBrainCheck(assets, debt);
     }
     
-    window.copyText = (e, text) => {
-        e.stopPropagation();
-        if(state.privacy) return alert("Desactiva el modo oculto para copiar.");
-        navigator.clipboard.writeText(text);
-        alert("Copiado al portapapeles");
-    };
+    window.copyText = (e, text) => { e.stopPropagation(); if(state.privacy) return alert("Desactiva el modo oculto para copiar."); navigator.clipboard.writeText(text); alert("Copiado."); };
 
     function renderTxs() {
         const list = $('txList'); list.innerHTML = '';
@@ -726,32 +752,23 @@
             const item = document.createElement('div'); item.className = 'tx-item';
             const color = t.type==='expense'?'var(--danger)':(t.type==='income'?'var(--success)':'var(--info)');
             const icon = t.type==='expense'?'fa-arrow-down':(t.type==='income'?'fa-arrow-up':'fa-exchange-alt');
-            item.innerHTML = `
-                <div style="display:flex; align-items:center">
-                    <div class="tx-icon" style="color:${color}"><i class="fas ${icon}"></i></div>
-                    <div><div class="font-bold">${t.desc}</div><small class="text-muted">${t.date} • ${getCatName(t.cat)}</small></div>
-                </div>
-                <div class="font-bold privacy-target" style="color:${color}">${fmt(t.amount)}</div>`;
-            item.onclick = () => openEditTx(t);
-            list.appendChild(item);
+            item.innerHTML = `<div style="display:flex; align-items:center"><div class="tx-icon" style="color:${color}"><i class="fas ${icon}"></i></div><div><div class="font-bold">${t.desc}</div><small class="text-muted">${t.date} • ${getCatName(t.cat)}</small></div></div><div class="font-bold privacy-target" style="color:${color}">${fmt(t.amount)}</div>`;
+            item.onclick = () => openEditTx(t); list.appendChild(item);
         });
     }
 
     window.runStrategy = () => {
         const buffer = num('stratBuffer'); state.buffer = buffer; localStorage.setItem('sf_buffer', buffer);
-        const activeAccs = state.accounts.filter(a => {
-            if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint';
-            if(state.unlocked) return true; return false;
-        });
-        const liquidity = activeAccs.filter(a => a.type === 'debit').reduce((s,a) => s + parseFloat(a.balance), 0);
+        const activeAccs = state.accounts.filter(a => { if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint'; if(state.unlocked) return true; return false; });
+        const liquidity = activeAccs.filter(a => a.type === 'debit').reduce((s,a) => s + toMXN(parseFloat(a.balance), a.currency), 0);
         const debts = activeAccs.filter(a => a.type === 'credit' && parseFloat(a.balance) > 0);
         let mandatoryPayment = 0; let stratHTML = '';
 
         debts.forEach(d => {
             const min = parseFloat(d.min || 0);
             if(min > 0) {
-                mandatoryPayment += min;
-                stratHTML += `<div class="strat-card min" onclick="execStrat('${d.id}', '${d.name}', ${min})"><div class="flex-between"><strong>⚠️ Obligación Contractual: ${d.name}</strong><span>${fmt(min)}</span></div><p class="text-xs text-muted">Pago mínimo requerido.</p></div>`;
+                const minMXN = toMXN(min, d.currency); mandatoryPayment += minMXN;
+                stratHTML += `<div class="strat-card min" onclick="execStrat('${d.id}', '${d.name}', ${min})"><div class="flex-between"><strong>⚠️ Obligación: ${d.name}</strong><span>${fmt(min, d.currency)}</span></div><p class="text-xs text-muted">Pago mínimo requerido.</p></div>`;
             }
         });
 
@@ -759,34 +776,29 @@
         $('stratLiquid').innerText = fmt(available);
 
         if(available < 0) {
-            stratHTML += `<div class="strat-card" style="border-color:var(--danger); background:rgba(239,68,68,0.1)"><strong>🚨 ALERTA DE INSOLVENCIA TÉCNICA</strong><p class="text-xs">El flujo de caja actual es insuficiente.</p></div>`;
+            stratHTML += `<div class="strat-card" style="border-color:var(--danger); background:rgba(239,68,68,0.1)"><strong>🚨 DÉFICIT DE CAJA</strong><p class="text-xs">Liquidez insuficiente para mínimos.</p></div>`;
         } else if (available > 0 && debts.length > 0) {
-            debts.sort((a,b) => parseFloat(b.balance) - parseFloat(a.balance));
+            debts.sort((a,b) => toMXN(parseFloat(b.balance), b.currency) - toMXN(parseFloat(a.balance), a.currency));
             const target = debts[0];
-            const payAmount = Math.min(available, parseFloat(target.balance));
-            stratHTML += `<div class="strat-card pay" onclick="execStrat('${target.id}', '${target.name}', ${payAmount})"><div class="flex-between"><strong>📈 Recomendación de Desapalancamiento: ${target.name}</strong><span>${fmt(payAmount)}</span></div><p class="text-xs text-muted">Asignación de superávit para reducir riesgo.</p></div>`;
+            const payAmount = Math.min(available, toMXN(parseFloat(target.balance), target.currency));
+            stratHTML += `<div class="strat-card pay" onclick="execStrat('${target.id}', '${target.name}', ${payAmount})"><div class="flex-between"><strong>📈 Desapalancar: ${target.name}</strong><span>${fmt(payAmount)} (Aprox)</span></div><p class="text-xs text-muted">Reducción de deuda prioritaria.</p></div>`;
         } else if (debts.length === 0) {
-            stratHTML += `<div class="strat-card ok"><strong>🛡️ Posición Financiera Robusta</strong><p class="text-xs">Sin pasivos a corto plazo.</p></div>`;
+            stratHTML += `<div class="strat-card ok"><strong>🛡️ Solidez Financiera</strong><p class="text-xs">Sin deudas activas.</p></div>`;
         }
         $('strategyOutput').innerHTML = stratHTML;
     };
     
-    window.execStrat = (accId, accName, amount) => {
-        closeModal('modalStrategy'); openTxModal();
-        setTxMode('transfer'); $('payTo').value = accId; $('txAmount').value = amount.toFixed(2);
-        $('txDesc').value = `Pago Estratégico: ${accName}`;
-        const fundSource = state.accounts.find(a => a.type === 'debit' && a.balance >= amount);
-        if(fundSource) $('payFrom').value = fundSource.id;
-    };
-
+    window.execStrat = (accId, accName, amount) => { closeModal('modalStrategy'); openTxModal(); setTxMode('transfer'); $('payTo').value = accId; $('txAmount').value = amount.toFixed(2); $('txDesc').value = `Pago Estratégico: ${accName}`; const fundSource = state.accounts.find(a => a.type === 'debit' && toMXN(parseFloat(a.balance),a.currency) >= amount); if(fundSource) $('payFrom').value = fundSource.id; };
     window.openStrategyModal = () => { openModal('modalStrategy'); runStrategy(); };
 
     window.saveSettings = () => {
         state.settings.pin = val('householdPin'); state.settings.partnerId = val('partnerIdInput');
         state.settings.me = val('confMe'); state.settings.partner = val('confPartner');
+        state.rates['USD'] = num('rateUSD'); state.rates['EUR'] = num('rateEUR');
         localStorage.setItem('sf_opts', JSON.stringify(state.settings));
+        localStorage.setItem('sf_rates', JSON.stringify(state.rates));
         if(state.user) { state.user.updateProfile({ displayName: val('confMe') }); updateLabels(); }
-        closeModal('modalSettings'); alert("Parámetros actualizados.");
+        closeModal('modalSettings'); alert("Guardado."); loadData(); // Reload to apply rates
     };
 
     window.copyId = () => { navigator.clipboard.writeText(state.user.uid); alert("Copiado."); };
@@ -796,7 +808,7 @@
         const data = {
             name: val('accName'), type: val('accType'), balance: num('accBalance'), owner: val('accOwner'),
             limit: num('accLimit'), cut: val('accCut'), payDay: val('accPayDay'), min: num('accMin'), noInt: num('accNoInt'),
-            card: val('accCard'), clabe: val('accClabe')
+            card: val('accCard'), clabe: val('accClabe'), currency: val('accCurrency'), order: num('accOrder')
         };
         if(id) await db.collection('accounts').doc(id).update(data); else await db.collection('accounts').add(data);
         closeModal('modalAcc');
@@ -804,7 +816,7 @@
     
     window.openCollectModal = () => {
         const f = $('colFrom'); f.innerHTML = ''; const t = $('colTo'); t.innerHTML = '';
-        state.accounts.filter(a => a.type === 'receivable').forEach(a => f.innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance)})</option>`);
+        state.accounts.filter(a => a.type === 'receivable').forEach(a => f.innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance, a.currency)})</option>`);
         state.accounts.filter(a => a.type === 'debit').forEach(a => t.innerHTML += `<option value="${a.id}">${a.name}</option>`);
         if(f.children.length === 0) return alert("No existen cuentas por cobrar.");
         $('colDate').valueAsDate = new Date(); openModal('modalCollect');
@@ -842,8 +854,8 @@
     }
 
     window.exportData = () => {
-        const rows = [["ID","Nombre","Tipo","Saldo","Dueño","Limite","Minimo","NoIntereses","Corte","Pago","Tarjeta","CLABE"]];
-        state.accounts.forEach(a => { rows.push([a.id, a.name, a.type, a.balance, a.owner, a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0, a.card||'', a.clabe||'']); });
+        const rows = [["ID","Nombre","Tipo","Saldo","Moneda","Dueño","Limite","Minimo","NoIntereses","Corte","Pago","Tarjeta","CLABE","Orden"]];
+        state.accounts.forEach(a => { rows.push([a.id, a.name, a.type, a.balance, a.currency||'MXN', a.owner, a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0, a.card||'', a.clabe||'', a.order||0]); });
         let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
         const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent));
         link.setAttribute("download", "backup_finance.csv"); document.body.appendChild(link); link.click();
@@ -855,7 +867,7 @@
             const lines = e.target.result.split('\n'); const batch = db.batch();
             for(let i=1; i<lines.length; i++) {
                 const cols = lines[i].split(','); if(cols.length < 5) continue;
-                const data = { name: cols[1], type: cols[2], balance: parseFloat(cols[3]), owner: cols[4], limit: parseFloat(cols[5]||0), min: parseFloat(cols[6]||0), noInt: parseFloat(cols[7]||0), cut: cols[8]||0, payDay: cols[9]||0, card: cols[10]||'', clabe: cols[11]||'' };
+                const data = { name: cols[1], type: cols[2], balance: parseFloat(cols[3]), currency: cols[4]||'MXN', owner: cols[5], limit: parseFloat(cols[6]||0), min: parseFloat(cols[7]||0), noInt: parseFloat(cols[8]||0), cut: cols[9]||0, payDay: cols[10]||0, card: cols[11]||'', clabe: cols[12]||'', order: parseFloat(cols[13]||0) };
                 if(cols[0] && cols[0].length > 5) batch.set(db.collection('accounts').doc(cols[0]), data, {merge:true}); else batch.set(db.collection('accounts').doc(), data);
             }
             await batch.commit(); alert("Datos importados."); closeModal('modalSettings');
@@ -867,9 +879,9 @@
     window.openChartModal = () => {
         openModal('modalChart'); const ctx = $('myChart').getContext('2d'); if(chartInstance) chartInstance.destroy();
         const activeAccs = state.accounts.filter(a => { if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint'; if(state.unlocked) return true; return false; });
-        const assets = activeAccs.filter(a => a.type === 'debit').reduce((s,a) => s + parseFloat(a.balance), 0);
-        const debt = activeAccs.filter(a => a.type === 'credit').reduce((s,a) => s + parseFloat(a.balance), 0);
-        const receivable = activeAccs.filter(a => a.type === 'receivable').reduce((s,a) => s + parseFloat(a.balance), 0);
+        const assets = activeAccs.filter(a => a.type === 'debit').reduce((s,a) => s + toMXN(parseFloat(a.balance),a.currency), 0);
+        const debt = activeAccs.filter(a => a.type === 'credit').reduce((s,a) => s + toMXN(parseFloat(a.balance),a.currency), 0);
+        const receivable = activeAccs.filter(a => a.type === 'receivable').reduce((s,a) => s + toMXN(parseFloat(a.balance),a.currency), 0);
         chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: ['Liquidez (Activos)', 'Deuda (Pasivos)', 'Por Cobrar'], datasets: [{ data: [assets, debt, receivable], backgroundColor: ['#10b981', '#ef4444', '#f59e0b'], borderWidth: 0 }] }, options: { plugins: { legend: { labels: { color: 'white', font: {family: 'Outfit'} } } } } });
     };
 
@@ -886,9 +898,9 @@
     window.checkPin = () => { if(val('unlockPin') === state.settings.pin) { state.unlocked = true; closeModal('modalLock'); $('tabPartner').classList.remove('locked'); $('tabAll').classList.remove('locked'); setFilter(window.pendingUnlock); } else alert("PIN Incorrecto"); };
     window.toggleFields = () => { const isCredit = val('accType') === 'credit'; $('creditFields').classList.toggle('hidden', !isCredit); };
     window.openAccModal = () => { $('formAcc').reset(); $('editAccId').value=''; $('btnDelAcc').classList.add('hidden'); toggleFields(); openModal('modalAcc'); };
-    window.openEditAcc = (a) => { $('editAccId').value = a.id; $('btnDelAcc').classList.remove('hidden'); $('accName').value=a.name; $('accType').value=a.type; $('accBalance').value=a.balance; $('accOwner').value=a.owner; $('accLimit').value=a.limit||''; $('accCut').value=a.cut||''; $('accPayDay').value=a.payDay||''; $('accMin').value=a.min||''; $('accNoInt').value=a.noInt||''; $('accCard').value=a.card||''; $('accClabe').value=a.clabe||''; toggleFields(); openModal('modalAcc'); };
+    window.openEditAcc = (a) => { $('editAccId').value = a.id; $('btnDelAcc').classList.remove('hidden'); $('accName').value=a.name; $('accType').value=a.type; $('accBalance').value=a.balance; $('accOwner').value=a.owner; $('accLimit').value=a.limit||''; $('accCut').value=a.cut||''; $('accPayDay').value=a.payDay||''; $('accMin').value=a.min||''; $('accNoInt').value=a.noInt||''; $('accCard').value=a.card||''; $('accClabe').value=a.clabe||''; $('accCurrency').value=a.currency||'MXN'; $('accOrder').value=a.order||''; toggleFields(); openModal('modalAcc'); };
     window.openTxModal = () => { $('formTx').reset(); $('editTxId').value=''; $('txDate').valueAsDate=new Date(); setTxMode('expense'); openModal('modalTx'); };
-    window.setTxMode = (m) => { $('txMode').value = m; document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active')); if(m==='expense') $('btnExp').classList.add('active'); if(m==='income') $('btnInc').classList.add('active'); if(m==='transfer') $('btnTrf').classList.add('active'); $('divTrf').classList.toggle('hidden', m!=='transfer'); $('divNormal').classList.toggle('hidden', m==='transfer'); const fill = (id) => { $(id).innerHTML = ''; state.accounts.forEach(a => $(id).innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance)})</option>`); }; fill('txAccount'); fill('payFrom'); fill('payTo'); };
+    window.setTxMode = (m) => { $('txMode').value = m; document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active')); if(m==='expense') $('btnExp').classList.add('active'); if(m==='income') $('btnInc').classList.add('active'); if(m==='transfer') $('btnTrf').classList.add('active'); $('divTrf').classList.toggle('hidden', m!=='transfer'); $('divNormal').classList.toggle('hidden', m==='transfer'); const fill = (id) => { $(id).innerHTML = ''; state.accounts.forEach(a => $(id).innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance, a.currency)})</option>`); }; fill('txAccount'); fill('payFrom'); fill('payTo'); };
     window.delAcc = async () => { if(confirm("¿Eliminar?")) await db.collection('accounts').doc(val('editAccId')).delete(); closeModal('modalAcc'); };
     window.delTx = async () => { if(confirm("¿Eliminar?")) await db.collection('transactions').doc(val('editTxId')).delete(); closeModal('modalTx'); };
     function runBrainCheck(assets, debt) { const msg = $('brain-msg'); const badge = $('brain-badge'); if(debt > assets) { msg.innerHTML = "Apalancamiento elevado. Riesgo de solvencia detectado."; badge.style.background = "var(--danger)"; badge.innerText = "ALERTA"; } else { msg.innerHTML = "Estructura de capital saludable. Liquidez positiva."; badge.style.background = "var(--success)"; badge.innerText = "OPTIMO"; } }
