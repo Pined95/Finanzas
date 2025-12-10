@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Ultimate v100</title>
+    <title>SmartFinance | v101 Stable</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -14,192 +14,144 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v100 === */
+        /* === ESTILOS VISUALES v101 === */
         :root { 
-            --bg: #0b0f19; 
-            --card-bg: #151b2b; 
-            --input-bg: #1e2532;
-            --text: #ffffff; 
-            --text-muted: #94a3b8; 
-            --primary: #6366f1; 
-            --primary-dark: #4338ca;
-            --accent: #8b5cf6;
-            --success: #10b981; 
-            --danger: #ef4444; 
-            --warning: #f59e0b; 
-            --info: #0ea5e9; 
-            --pending: #fbbf24;
-            --radius: 16px;
+            --bg: #0b0f19; --card-bg: #151b2b; --input-bg: #1e2532;
+            --text: #ffffff; --text-muted: #94a3b8; 
+            --primary: #6366f1; --accent: #8b5cf6;
+            --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --info: #0ea5e9; --pending: #fbbf24;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 140px; overflow-x: hidden; min-height: 100vh; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 140px; min-height: 100vh; }
         
-        /* UTILIDADES */
-        .hidden { display: none !important; }
-        .blur-text { filter: blur(6px); transition: filter 0.2s; user-select: none; }
-        .blur-text:hover { filter: blur(0); }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
-        .text-sm { font-size: 0.8rem; }
-        .text-xs { font-size: 0.7rem; }
-        .font-bold { font-weight: 700; }
+        /* CONTENEDOR VISIBLE POR DEFECTO PARA EVITAR ERRORES */
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; display: none; }
         
-        /* PANTALLA DE CARGA */
-        #loading-overlay { position: fixed; inset: 0; background: rgba(11, 15, 25, 0.98); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; pointer-events: none; opacity: 0; }
-        #loading-overlay.active { opacity: 1; pointer-events: all; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(99, 102, 241, 0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        
-        /* AUTH SCREEN */
         #auth-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         
-        /* CONTENEDOR PRINCIPAL */
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; display: none; opacity: 0; transition: opacity 0.5s; }
-        .container.loaded { opacity: 1; }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(11, 15, 25, 0.95); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; pointer-events: none; opacity: 0; }
+        #loading-overlay.active { opacity: 1; pointer-events: all; }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
 
-        /* HEADER */
-        .header { margin-bottom: 25px; }
-        .privacy-toggle { background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .privacy-toggle.active { background: var(--primary); border-color: var(--primary); }
+        /* WIDGETS & CARDS */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        
+        .profile-tabs { background: rgba(0,0,0,0.3); padding: 5px; border-radius: 16px; display: flex; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
+        .pt-btn { flex: 1; text-align: center; padding: 12px; border-radius: 12px; color: var(--text-muted); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .pt-btn.active { background: var(--primary); color: white; }
+        .pt-btn.locked { opacity: 0.5; }
+        .pt-btn.locked::after { content: '\f023'; font-family: "Font Awesome 6 Free"; margin-left: 5px; font-size: 0.8rem; }
 
-        /* TABS */
-        .tabs { background: rgba(0,0,0,0.3); padding: 5px; border-radius: var(--radius); display: flex; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        .tab-btn { flex: 1; text-align: center; padding: 12px; border-radius: 12px; color: var(--text-muted); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; position: relative; }
-        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
-        .tab-btn.locked { opacity: 0.5; }
-        .tab-btn.locked::after { content: '\f023'; font-family: "Font Awesome 6 Free"; position: absolute; right: 10px; top: 12px; font-size: 0.7rem; }
-
-        /* WIDGETS */
-        .widget { padding: 20px; border-radius: 20px; margin-bottom: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .brain-widget { background: linear-gradient(135deg, #4338ca, #1e1b4b); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(67, 56, 202, 0.3); }
+        .brain-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .brain-msg { font-size: 0.95rem; line-height: 1.4; color: #e0e7ff; margin-bottom: 15px; }
         
-        /* Widget Cerebro */
-        .brain-widget { background: linear-gradient(135deg, #4338ca, #1e1b4b); box-shadow: 0 10px 30px rgba(67, 56, 202, 0.3); }
-        .brain-widget::after { content:''; position: absolute; top:-50px; right:-50px; width:150px; height:150px; background:var(--accent); filter:blur(70px); opacity:0.3; }
-        
-        /* Widget Resumen */
-        .summary-card { background: var(--card-bg); }
-        .net-val { font-size: 2.5rem; font-weight: 800; margin: 5px 0; letter-spacing: -1px; }
-        
+        .summary-card { background: var(--card-bg); border-radius: 24px; padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .net-val { font-size: 2.5rem; font-weight: 800; margin: 5px 0; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
-        .stat-item span:first-child { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+        .stat-item span:first-child { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 700; }
         .stat-item span:last-child { font-size: 1.1rem; font-weight: 700; }
 
-        /* CUENTAS (Cards) */
-        .acc-list { display: flex; overflow-x: auto; gap: 15px; padding: 5px 5px 25px; scroll-snap-type: x mandatory; }
+        .acc-list { display: flex; overflow-x: auto; gap: 15px; padding: 5px 5px 20px; scroll-snap-type: x mandatory; }
         .acc-list::-webkit-scrollbar { display: none; }
-        .bank-card { flex: 0 0 280px; background: var(--card-bg); border-radius: 20px; padding: 20px; scroll-snap-align: center; cursor: pointer; position: relative; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
-        .bank-card:active { transform: scale(0.98); }
-        
-        /* CENTINELA ALERTS */
-        .sentinel-alert { font-size: 0.7rem; margin-top: 10px; padding: 6px; border-radius: 8px; background: rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px; font-weight: 600; }
-        .sentinel-alert.danger { color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-        .sentinel-alert.warning { color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .bank-card { flex: 0 0 280px; background: var(--card-bg); border-radius: 20px; padding: 20px; scroll-snap-align: center; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; }
 
-        /* TRANSACCIONES */
         .tx-list { display: flex; flex-direction: column; gap: 10px; }
-        .tx-item { background: var(--card-bg); padding: 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.02); }
+        .tx-item { background: var(--card-bg); padding: 15px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); }
         .tx-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
 
-        /* MODALES */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(5px); }
+        /* MODALS & FORMS */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; align-items: flex-end; justify-content: center; }
         .modal.open { display: flex; }
-        .sheet { background: #11141d; width: 100%; max-width: 550px; border-radius: 30px 30px 0 0; padding: 30px; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-        /* FORMULARIOS */
+        .sheet { background: #11141d; width: 100%; max-width: 550px; border-radius: 32px 32px 0 0; padding: 25px; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.15); animation: slideUp 0.3s ease; }
+        
         .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 16px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-        input:focus, select:focus { border-color: var(--primary); }
+        label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; }
+        input, select { width: 100%; padding: 16px; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 1rem; outline: none; }
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
-        .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 10px; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.97); }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 10px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-text { background: transparent; color: var(--text-muted); }
-        .btn-danger { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
-
-        /* ESTRATEGIA CARDS */
-        .strat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .strat-card:hover { background: rgba(255,255,255,0.06); }
-        .strat-card.urgent { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.05); }
-        .strat-card.warn { border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.05); }
-        .strat-card.ok { border-left: 4px solid var(--success); background: rgba(16, 185, 129, 0.05); }
-
-        /* FABs */
-        .fab { position: fixed; bottom: 30px; right: 25px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; box-shadow: 0 10px 30px rgba(99,102,241,0.4); z-index: 100; cursor: pointer; }
         
+        .fab { position: fixed; bottom: 30px; right: 25px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; box-shadow: 0 10px 30px rgba(99,102,241,0.4); z-index: 100; cursor: pointer; }
+        .fab-mini { position: fixed; bottom: 100px; right: 32px; width: 45px; height: 45px; background: var(--pending); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: black; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 99; cursor: pointer; }
+
+        /* STRATEGY CARDS */
+        .strat-card { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid gray; cursor: pointer; }
+        .strat-card.urgent { border-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
+        .strat-card.warn { border-color: var(--warning); background: rgba(245, 158, 11, 0.05); }
+        .strat-card.ok { border-color: var(--success); background: rgba(16, 185, 129, 0.05); }
+
+        .hidden { display: none !important; }
+        .blur-text { filter: blur(5px); }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay"><div class="spinner"></div><div style="margin-top:20px; font-weight:600">SINCRONIZANDO...</div></div>
+<div id="loading-overlay"><div class="spinner"></div><div style="margin-top:15px; font-weight:700">CARGANDO...</div></div>
 
 <div id="auth-screen">
-    <i class="fas fa-layer-group" style="font-size: 5rem; color: var(--primary); margin-bottom: 25px;"></i>
+    <i class="fas fa-cube" style="font-size: 5rem; color: var(--primary); margin-bottom: 25px;"></i>
     <h1 style="margin:0">SmartFinance</h1>
-    <p style="color:var(--text-muted); margin-bottom:40px">Titanium v100</p>
-    <button class="btn btn-primary" style="max-width:280px" onclick="login()">
-        <i class="fab fa-google" style="margin-right:10px"></i> Conectar con Google
-    </button>
+    <p style="color:var(--text-muted)">v101 Stable</p>
+    <button class="btn btn-primary" style="max-width:280px; margin-top:30px" onclick="login()">Acceder con Google</button>
 </div>
 
 <div class="container" id="app-screen">
     
-    <div class="header flex-between">
+    <div class="header">
         <div>
             <div style="display:flex; gap:10px; align-items:center">
-                <small class="font-bold text-muted">HOLA,</small>
-                <div class="privacy-toggle" onclick="togglePrivacy()">
-                    <i class="fas fa-eye"></i> <span id="privacy-label">Visible</span>
-                </div>
+                <small style="color:var(--text-muted); font-weight:700">HOLA,</small>
+                <i class="fas fa-eye" onclick="togglePrivacy()" style="cursor:pointer; color:var(--text-muted)"></i>
             </div>
-            <h3 id="uName" style="margin:5px 0 0">Usuario</h3>
+            <h3 id="uName" style="margin:5px 0 0">...</h3>
         </div>
-        <div style="display:flex; gap:10px">
-            <div onclick="openModal('modalSettings')" style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; cursor:pointer"><i class="fas fa-cog"></i></div>
-        </div>
+        <div class="icon-btn" onclick="openModal('modalSettings')"><i class="fas fa-cog" style="font-size:1.5rem"></i></div>
     </div>
 
-    <div class="tabs">
-        <div class="tab-btn active" id="tabMe" onclick="setFilter('me')">Mío</div>
-        <div class="tab-btn locked" id="tabPartner" onclick="unlockSync('partner')">Pareja</div>
-        <div class="tab-btn locked" id="tabAll" onclick="unlockSync('all')">Todo</div>
+    <div class="profile-tabs">
+        <div class="pt-btn active" id="tabMe" onclick="setFilter('me')">Mío</div>
+        <div class="pt-btn locked" id="tabPartner" onclick="unlockSync('partner')">Pareja</div>
+        <div class="pt-btn locked" id="tabAll" onclick="unlockSync('all')">Todo</div>
     </div>
 
-    <div class="widget brain-widget">
-        <div class="flex-between" style="margin-bottom:15px">
-            <span class="font-bold text-sm" style="color:#e0e7ff; letter-spacing:1px"><i class="fas fa-brain"></i> ESTRATEGIA ACTIVA</span>
-            <span id="brain-badge" class="text-xs" style="background:rgba(255,255,255,0.2); padding:3px 8px; border-radius:10px">ANALIZANDO</span>
+    <div class="brain-widget">
+        <div class="brain-header">
+            <span style="font-weight:800; color:#e0e7ff; letter-spacing:1px"><i class="fas fa-brain"></i> ESTRATEGIA</span>
+            <span class="text-xs" style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:10px; font-size:0.7rem" id="brain-badge">ACTIVO</span>
         </div>
-        <div id="brain-msg" style="font-size:0.95rem; color:white; line-height:1.5; margin-bottom:20px; position:relative; z-index:2">
-            Calculando tu salud financiera...
-        </div>
-        <div class="row-2" style="position:relative; z-index:2">
-            <button class="btn" style="margin:0; padding:12px; font-size:0.8rem; background:rgba(255,255,255,0.2)" onclick="openStrategyModal()"><i class="fas fa-calculator"></i> Calculadora</button>
-            <button class="btn" style="margin:0; padding:12px; font-size:0.8rem; background:rgba(255,255,255,0.1)" onclick="openModal('modalPlanning')"><i class="fas fa-calendar"></i> Planificar</button>
+        <div id="brain-msg" class="brain-msg">Analizando tus finanzas...</div>
+        <div class="row-2">
+            <button class="btn" style="margin:0; padding:10px; font-size:0.8rem; background:rgba(255,255,255,0.2)" onclick="openStrategyModal()">Calculadora</button>
+            <button class="btn" style="margin:0; padding:10px; font-size:0.8rem; background:rgba(255,255,255,0.1)" onclick="openModal('modalPlanning')">Planificar</button>
         </div>
     </div>
 
     <div class="summary-card">
-        <small class="font-bold text-muted">PATRIMONIO NETO REAL</small>
+        <small style="color:var(--text-muted); font-weight:700">PATRIMONIO NETO</small>
         <div class="net-val" id="netDisplay">$0.00</div>
         <div class="stat-grid">
             <div class="stat-item"><span>Liquidez</span><span style="color:var(--success)" id="assetDisplay">--</span></div>
-            <div class="stat-item"><span>Deuda Total</span><span style="color:var(--danger)" id="debtDisplay">--</span></div>
+            <div class="stat-item"><span>Deuda</span><span style="color:var(--danger)" id="debtDisplay">--</span></div>
             <div class="stat-item"><span>Por Cobrar</span><span style="color:var(--pending)" id="pendDisplay">--</span></div>
             <div class="stat-item"><span>Reservado</span><span style="color:var(--info)" id="goalsDisplay">--</span></div>
         </div>
     </div>
 
-    <div class="flex-between" style="margin:30px 0 15px">
-        <span class="font-bold text-muted text-sm">MIS CUENTAS</span>
-        <span style="color:var(--primary); font-weight:700; cursor:pointer; font-size:0.85rem" onclick="openAccModal()">+ Nueva</span>
+    <div class="header" style="margin:30px 0 15px">
+        <span style="font-weight:800; color:var(--text-muted)">CUENTAS</span>
+        <span style="color:var(--primary); font-weight:700; cursor:pointer" onclick="openAccModal()">+ Nueva</span>
     </div>
     <div class="acc-list" id="accList"></div>
 
-    <div class="flex-between" style="margin:30px 0 15px">
-        <span class="font-bold text-muted text-sm">MOVIMIENTOS</span>
+    <div class="header" style="margin:30px 0 15px">
+        <span style="font-weight:800; color:var(--text-muted)">HISTORIAL</span>
         <input type="month" id="dateFilter" style="background:transparent; border:none; color:white; font-weight:700; font-family:inherit" onchange="loadTransactions()">
     </div>
     <div id="txList" class="tx-list"></div>
@@ -207,183 +159,96 @@
 </div>
 
 <div class="fab" onclick="openTxModal()"><i class="fas fa-plus"></i></div>
-<div style="position:fixed; bottom:100px; right:32px; width:45px; height:45px; background:var(--pending); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 15px rgba(0,0,0,0.3); z-index:90; cursor:pointer" onclick="openCollectModal()"><i class="fas fa-hand-holding-dollar" style="color:black"></i></div>
+<div class="fab-mini" onclick="openCollectModal()"><i class="fas fa-hand-holding-usd"></i></div>
 
 <div class="modal" id="modalStrategy">
     <div class="sheet">
-        <h3><i class="fas fa-chess"></i> Estrategia Inteligente</h3>
-        <p class="text-sm text-muted" style="margin-bottom:20px">El sistema analiza tus fechas de corte, intereses y liquidez disponible.</p>
-        
+        <h3>Estrategia Financiera</h3>
         <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin-bottom:20px">
             <div class="row-2">
-                <div>
-                    <label style="color:var(--success)">Disponible Hoy</label>
-                    <div id="stratLiquid" style="font-weight:800; font-size:1.2rem; color:var(--success)">$0.00</div>
-                </div>
-                <div>
-                    <label style="color:var(--warning)">Colchón (Reserva)</label>
-                    <input type="number" id="stratBuffer" placeholder="$0" onchange="runStrategy()" style="padding:8px; width:100%; text-align:center; font-weight:700">
-                </div>
+                <div><label style="color:var(--success)">Disponible</label><div id="stratLiquid" style="font-weight:800;font-size:1.2rem">$0.00</div></div>
+                <div><label style="color:var(--warning)">Colchón</label><input type="number" id="stratBuffer" placeholder="$0" onchange="runStrategy()" style="padding:8px; width:100%; text-align:center; font-weight:700"></div>
             </div>
-            <div style="margin-top:10px; display:flex; align-items:center; gap:10px">
-                <input type="checkbox" id="stratIncludeIncome" onchange="runStrategy()" style="width:auto">
-                <label style="margin:0; font-size:0.8rem">Incluir Ingresos Agendados (15 días)</label>
-            </div>
+            <div style="margin-top:10px"><input type="checkbox" id="stratIncludeIncome" onchange="runStrategy()"> <span style="font-size:0.8rem">Incluir Ingresos (15 días)</span></div>
         </div>
-
         <div id="actionPlan"></div>
-        
-        <div id="calcResult" style="margin-top:20px; text-align:center; font-weight:800; padding:15px; border-radius:12px; background:rgba(255,255,255,0.03)"></div>
+        <div id="calcResult" style="margin-top:20px; text-align:center; font-weight:800; font-size:1.2rem"></div>
         <button class="btn btn-text" onclick="closeModal('modalStrategy')">Cerrar</button>
-    </div>
-</div>
-
-<div class="modal" id="modalTx">
-    <div class="sheet">
-        <h3>Nuevo Movimiento</h3>
-        <div style="display:flex; gap:10px; margin-bottom:20px">
-            <button class="btn" style="margin:0; padding:10px" id="btnExp" onclick="setTxMode('expense')">Gasto</button>
-            <button class="btn" style="margin:0; padding:10px" id="btnInc" onclick="setTxMode('income')">Ingreso</button>
-            <button class="btn" style="margin:0; padding:10px" id="btnPay" onclick="setTxMode('payment')">Transfer</button>
-        </div>
-        <form id="formTx">
-            <input type="hidden" id="editTxId"><input type="hidden" id="txMode" value="expense">
-            <input type="number" id="txAmount" placeholder="$0.00" step="0.01" style="font-size:2.5rem; text-align:center; background:transparent; border:none; color:white; width:100%; font-weight:800; margin-bottom:20px" required>
-            <div class="input-group"><input type="text" id="txDesc" placeholder="Concepto" style="text-align:center" required></div>
-            <input type="date" id="txDate" class="input-group" required>
-            
-            <div id="divNormal" class="input-group"><label>Cuenta</label><select id="txAccount"></select></div>
-            <div id="divPay" class="hidden">
-                <div class="input-group"><label>Desde (Origen)</label><select id="payFrom"></select></div>
-                <div class="input-group"><label>Hacia (Destino)</label><select id="payTo"></select></div>
-            </div>
-            
-            <div class="input-group"><label>Categoría</label><select id="txCat">
-                <option value="food">🍔 Comida</option><option value="transport">⛽ Transporte</option>
-                <option value="home">🏠 Hogar</option><option value="fun">🍿 Ocio</option>
-                <option value="shopping">🛍️ Compras</option><option value="health">💊 Salud</option>
-                <option value="services">💡 Servicios</option><option value="debt">💸 Deudas</option>
-                <option value="income">💰 Ingreso</option><option value="other">📦 Otro</option>
-            </select></div>
-            
-            <button class="btn btn-primary">Guardar</button>
-            <button type="button" class="btn btn-danger hidden" id="btnDelTx" onclick="delTx()">Eliminar</button>
-            <button type="button" class="btn btn-text" onclick="closeModal('modalTx')">Cancelar</button>
-        </form>
-    </div>
-</div>
-
-<div class="modal" id="modalAcc">
-    <div class="sheet">
-        <h3>Configurar Cuenta</h3>
-        <form id="formAcc">
-            <input type="hidden" id="editAccId">
-            <div class="row-2">
-                <div class="input-group"><label>Nombre</label><input type="text" id="accName" required></div>
-                <div class="input-group"><label>Dueño</label><select id="accOwner"><option value="me">Mío</option><option value="partner">Pareja</option><option value="joint">Compartido</option></select></div>
-            </div>
-            <div class="input-group"><label>Tipo</label><select id="accType" onchange="toggleFields()"><option value="debit">Débito / Efectivo</option><option value="credit">Tarjeta de Crédito</option><option value="receivable">Por Cobrar (Deuda a favor)</option></select></div>
-            
-            <div class="row-2">
-                <div class="input-group"><label>Saldo Actual</label><input type="number" id="accBalance" step="0.01" required></div>
-                <div class="input-group"><label>Límite (Crédito)</label><input type="number" id="accLimit" step="0.01"></div>
-            </div>
-
-            <div id="fieldsCredit" class="hidden" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px">
-                <label style="color:var(--warning); margin-bottom:10px">Datos del Centinela</label>
-                <div class="row-2">
-                    <div class="input-group"><label>Día Corte</label><input type="number" id="accCut" placeholder="Ej: 12"></div>
-                    <div class="input-group"><label>Día Límite Pago</label><input type="number" id="accPayDay" placeholder="Ej: 2"></div>
-                </div>
-                <div class="row-2">
-                    <div class="input-group"><label>Pago No Intereses</label><input type="number" id="accNoInt" step="0.01"></div>
-                    <div class="input-group"><label>Pago Mínimo</label><input type="number" id="accMin" step="0.01"></div>
-                </div>
-                <div class="input-group"><label>APR % (Interés Anual)</label><input type="number" id="accApr"></div>
-            </div>
-
-            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; margin-bottom:20px">
-                <label style="color:var(--info)">Bóveda (Opcional)</label>
-                <div class="input-group"><input type="text" id="accCard" placeholder="Número Tarjeta"></div>
-                <div class="input-group"><input type="text" id="accClabe" placeholder="CLABE"></div>
-            </div>
-
-            <button class="btn btn-primary">Guardar</button>
-            <button type="button" class="btn btn-danger hidden" id="btnDelAcc" onclick="delAcc()">Eliminar</button>
-            <button type="button" class="btn btn-text" onclick="closeModal('modalAcc')">Cancelar</button>
-        </form>
-    </div>
-</div>
-
-<div class="modal" id="modalCollect">
-    <div class="sheet">
-        <h3 style="color:var(--pending)">Cobrar Dinero</h3>
-        <p class="text-sm text-muted">Mueve saldo de "Por Cobrar" a "Débito".</p>
-        <form id="formCollect">
-            <div class="input-group"><label>¿Quién paga?</label><select id="colFrom" required></select></div>
-            <div class="input-group"><label>Destino del dinero</label><select id="colTo" required></select></div>
-            <div class="row-2">
-                <div class="input-group"><label>Monto</label><input type="number" id="colAmount" step="0.01" required></div>
-                <div class="input-group"><label>Fecha</label><input type="date" id="colDate" required></div>
-            </div>
-            <button class="btn btn-primary" style="background:var(--success)">Registrar Cobro</button>
-            <button type="button" class="btn btn-text" onclick="closeModal('modalCollect')">Cancelar</button>
-        </form>
     </div>
 </div>
 
 <div class="modal" id="modalPlanning">
     <div class="sheet">
-        <h3>Ingresos Futuros</h3>
+        <h3>Próximos Ingresos</h3>
         <form id="formPlan" style="margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:20px">
-            <div class="row-2">
-                <input type="text" id="planDesc" placeholder="Concepto" required>
-                <input type="number" id="planAmount" placeholder="$ Monto" required>
-            </div>
-            <div class="input-group" style="margin-top:10px; display:flex; gap:10px">
-                <input type="date" id="planDate" required>
-                <button class="btn btn-primary" style="margin:0">Agendar</button>
-            </div>
+            <div class="row-2"><input type="text" id="planDesc" placeholder="Concepto" required><input type="number" id="planAmount" placeholder="$" required></div>
+            <div class="input-group" style="margin-top:10px; display:flex; gap:10px"><input type="date" id="planDate" required><button class="btn btn-primary" style="margin:0">Agendar</button></div>
         </form>
         <div id="planList"></div>
         <button class="btn btn-text" onclick="closeModal('modalPlanning')">Cerrar</button>
     </div>
 </div>
 
-<div class="modal" id="modalSettings">
+<div class="modal" id="modalAcc">
     <div class="sheet">
-        <h3>Ajustes</h3>
-        <div class="input-group">
-            <label>Nombres</label>
-            <div class="row-2"><input id="confMe" placeholder="Yo"><input id="confPartner" placeholder="Pareja"></div>
-        </div>
-        <div class="input-group">
-            <label>PIN de Sincronización (4 dígitos)</label>
-            <input type="password" id="confPin" maxlength="4" style="text-align:center; letter-spacing:5px">
-        </div>
-        <button class="btn btn-primary" onclick="saveSettings()">Guardar Configuración</button>
-        <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0">
-        <button class="btn btn-text" onclick="location.reload()">🔄 Forzar Recarga</button>
-        <button class="btn btn-danger" style="margin-top:10px" onclick="logout()">Cerrar Sesión</button>
-        <button class="btn btn-text" onclick="closeModal('modalSettings')">Cerrar</button>
+        <h3>Cuenta</h3>
+        <form id="formAcc">
+            <input type="hidden" id="editAccId">
+            <div class="row-2"><div class="input-group"><label>Nombre</label><input type="text" id="accName" required></div><div class="input-group"><label>Dueño</label><select id="accOwner"><option value="me">Mío</option><option value="partner">Pareja</option><option value="joint">Compartido</option></select></div></div>
+            <div class="input-group"><label>Tipo</label><select id="accType" onchange="toggleFields()"><option value="debit">Débito / Efectivo</option><option value="credit">Tarjeta de Crédito</option><option value="receivable">Por Cobrar</option></select></div>
+            <div class="row-2"><div class="input-group"><label>Saldo</label><input type="number" id="accBalance" step="0.01" required></div><div class="input-group"><label>Límite</label><input type="number" id="accLimit" step="0.01"></div></div>
+            
+            <div id="fieldsCredit" class="hidden" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px">
+                <label style="color:var(--warning)">Datos del Centinela</label>
+                <div class="row-2"><div class="input-group"><label>Día Corte</label><input type="number" id="accCut"></div><div class="input-group"><label>Día Límite</label><input type="number" id="accPayDay"></div></div>
+                <div class="row-2"><div class="input-group"><label>No Intereses</label><input type="number" id="accNoInt"></div><div class="input-group"><label>Mínimo</label><input type="number" id="accMin"></div></div>
+                <div class="input-group"><label>APR %</label><input type="number" id="accApr"></div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; margin-bottom:20px">
+                <label style="color:var(--info)">Bóveda</label>
+                <div class="input-group"><input type="text" id="accCard" placeholder="Tarjeta"></div>
+                <div class="input-group"><input type="text" id="accClabe" placeholder="CLABE"></div>
+            </div>
+
+            <button class="btn btn-primary">Guardar</button>
+            <button type="button" class="btn btn-text" style="color:var(--danger)" id="btnDelAcc" onclick="delAcc()">Eliminar</button>
+            <button type="button" class="btn btn-text" onclick="closeModal('modalAcc')">Cancelar</button>
+        </form>
     </div>
 </div>
 
-<div class="modal" id="modalLock">
+<div class="modal" id="modalTx">
     <div class="sheet">
-        <div style="text-align:center">
-            <i class="fas fa-lock" style="font-size:3rem; color:var(--accent); margin-bottom:20px"></i>
-            <h3>Acceso Protegido</h3>
-            <p class="text-muted">Ingresa el PIN compartido.</p>
-            <input type="password" id="unlockPin" maxlength="4" style="font-size:2rem; text-align:center; letter-spacing:10px; margin:20px 0" autofocus>
-            <button class="btn btn-primary" onclick="checkPin()">Desbloquear</button>
-            <button class="btn btn-text" onclick="closeModal('modalLock')">Cancelar</button>
+        <h3>Movimiento</h3>
+        <div style="display:flex; gap:10px; margin-bottom:20px">
+            <button class="btn" id="btnExp" onclick="setTxMode('expense')">Gasto</button>
+            <button class="btn" id="btnInc" onclick="setTxMode('income')">Ingreso</button>
+            <button class="btn" id="btnPay" onclick="setTxMode('payment')">Transfer</button>
         </div>
+        <form id="formTx">
+            <input type="hidden" id="editTxId"><input type="hidden" id="txMode" value="expense">
+            <input type="number" id="txAmount" placeholder="$0.00" step="0.01" style="font-size:2.5rem; text-align:center; background:transparent; border:none; color:white; width:100%; font-weight:800; margin-bottom:20px" required>
+            <div class="input-group"><input type="text" id="txDesc" placeholder="Concepto" style="text-align:center" required></div>
+            <input type="date" id="txDate" class="input-group" required>
+            <div id="divNormal" class="input-group"><label>Cuenta</label><select id="txAccount"></select></div>
+            <div id="divPay" class="hidden"><div class="input-group"><label>Origen</label><select id="payFrom"></select></div><div class="input-group"><label>Destino</label><select id="payTo"></select></div></div>
+            <div class="input-group"><label>Categoría</label><select id="txCat"><option value="food">🍔 Comida</option><option value="transport">⛽ Transporte</option><option value="home">🏠 Hogar</option><option value="fun">🍿 Ocio</option><option value="shopping">🛍️ Compras</option><option value="health">💊 Salud</option><option value="debt">💸 Deuda</option><option value="income">💰 Ingreso</option><option value="other">📦 Otro</option></select></div>
+            <button class="btn btn-primary">Guardar</button>
+            <button type="button" class="btn btn-text" style="color:var(--danger)" id="btnDelTx" onclick="delTx()">Eliminar</button>
+            <button type="button" class="btn btn-text" onclick="closeModal('modalTx')">Cancelar</button>
+        </form>
     </div>
 </div>
+
+<div class="modal" id="modalCollect"><div class="sheet"><h3 style="color:var(--pending)">Cobrar</h3><form id="formCollect"><div class="input-group"><label>Deudor</label><select id="colFrom" required></select></div><div class="input-group"><label>Destino</label><select id="colTo" required></select></div><div class="row-2"><div class="input-group"><label>Monto</label><input type="number" id="colAmount" step="0.01" required></div><div class="input-group"><label>Fecha</label><input type="date" id="colDate" required></div></div><button class="btn btn-primary" style="background:var(--success)">Registrar</button><button type="button" class="btn btn-text" onclick="closeModal('modalCollect')">Cancelar</button></form></div></div>
+
+<div class="modal" id="modalSettings"><div class="sheet"><h3>Ajustes</h3><div class="input-group"><label>Nombres</label><div class="row-2"><input id="confMe" placeholder="Yo"><input id="confPartner" placeholder="Pareja"></div></div><div class="input-group"><label>PIN Pareja</label><input type="password" id="confPin" maxlength="4" style="text-align:center;letter-spacing:5px"></div><button class="btn btn-primary" onclick="saveSettings()">Guardar</button><hr style="border-color:rgba(255,255,255,0.1); margin:20px 0"><button class="btn btn-text" style="color:var(--danger)" onclick="logout()">Cerrar Sesión</button><button class="btn btn-text" onclick="closeModal('modalSettings')">Cerrar</button></div></div>
+
+<div class="modal" id="modalLock"><div class="sheet"><div style="text-align:center"><i class="fas fa-lock" style="font-size:3rem;color:var(--accent);margin-bottom:20px"></i><h3>Protegido</h3><input type="password" id="unlockPin" maxlength="4" style="font-size:2rem;text-align:center;letter-spacing:10px;margin:20px 0"><button class="btn btn-primary" onclick="checkPin()">Desbloquear</button><button class="btn btn-text" onclick="closeModal('modalLock')">Cancelar</button></div></div></div>
 
 <script>
-    // --- 1. CONFIGURACIÓN FIREBASE (¡¡PEGA TUS CLAVES AQUÍ!!) ---
+    // --- 1. CONFIGURACIÓN FIREBASE (PEGAR CLAVES AQUÍ) ---
     const cfg = {
         apiKey: "AIzaSyC2Rw1f-2omvR6be9lHwbfhYT-JxyN3gmY",
         authDomain: "misfinanzas-860a5.firebaseapp.com",
@@ -411,7 +276,7 @@
     const loading = (a) => $('loading-overlay').classList.toggle('active', a);
     const openModal = (i) => $(i).classList.add('open');
     const closeModal = (i) => $(i).classList.remove('open');
-    
+
     // --- 4. AUTH ---
     auth.onAuthStateChanged(u => {
         if(u) {
@@ -422,17 +287,15 @@
             $('uName').innerText = u.displayName || 'Usuario';
             $('dateFilter').value = new Date().toISOString().slice(0,7);
             
-            // Init forms
+            // Init Forms
             $('stratBuffer').value = state.buffer;
             $('confMe').value = state.settings.me;
             $('confPartner').value = state.settings.partner;
             $('confPin').value = state.settings.pin;
             updateLabels();
-            
             loadData();
         } else {
-            $('auth-screen').style.display='flex'; 
-            $('.container').style.display='none';
+            $('auth-screen').style.display='flex'; $('.container').style.display='none';
         }
     });
 
@@ -446,30 +309,21 @@
             state.accounts = [];
             s.forEach(d => {
                 const da = d.data();
-                state.accounts.push({
-                    id: d.id, ...da,
-                    balance: Number(da.balance)||0, limit: Number(da.limit)||0,
-                    apr: Number(da.apr)||0, cut: Number(da.cut)||0, payDay: Number(da.payDay)||0,
-                    noInt: Number(da.noInt)||0, min: Number(da.min)||0
-                });
+                state.accounts.push({ id:d.id, ...da, balance: Number(da.balance)||0, limit: Number(da.limit)||0, apr:Number(da.apr)||0, cut:Number(da.cut)||0, payDay:Number(da.payDay)||0, noInt:Number(da.noInt)||0, min:Number(da.min)||0 });
             });
-            renderAccounts();
-            loading(false);
+            renderAccounts(); loading(false);
         });
         db.collection('planning').onSnapshot(s => {
-            state.planning = [];
-            s.forEach(d => state.planning.push({id:d.id, ...d.data()}));
-            renderPlanning(); // Refresh planning modal if open
+            state.planning = []; s.forEach(d => state.planning.push({id:d.id, ...d.data()})); renderPlanning();
         });
         loadTransactions();
     }
 
-    // --- 6. RENDER ACCOUNTS (CORE) ---
+    // --- 6. RENDER ACCOUNTS ---
     function renderAccounts() {
         const l = $('accList'); l.innerHTML = '';
         let assets=0, debt=0, pending=0;
         
-        // Filter logic based on Privacy Lock
         const visible = state.accounts.filter(a => {
             if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint';
             if(state.filter === 'partner' && state.syncUnlocked) return a.owner === 'partner' || a.owner === 'joint';
@@ -478,359 +332,172 @@
         });
 
         visible.forEach(a => {
-            if(a.type==='credit') debt += a.balance;
-            else if(a.type==='receivable') pending += a.balance;
-            else assets += a.balance;
+            if(a.type==='credit') debt+=a.balance; else if(a.type==='receivable') pending+=a.balance; else assets+=a.balance;
         });
 
-        // Update Dashboard
         $('assetDisplay').innerText = fmt(assets);
         $('debtDisplay').innerText = fmt(debt);
         $('pendDisplay').innerText = fmt(pending);
-        $('netDisplay').innerText = fmt(assets - debt); // Patrimonio real = Activos - Deuda (Sin pending)
-        
-        // Blur Privacy
+        $('netDisplay').innerText = fmt(assets - debt); // Patrimonio Real
+
         const blurEls = document.querySelectorAll('.net-val, .stat-item span:last-child');
         blurEls.forEach(el => el.classList.toggle('blur-text', state.privacy));
 
-        if(visible.length === 0) l.innerHTML = '<div style="text-align:center;width:100%;color:gray;padding:20px;border:1px dashed gray;border-radius:10px">No hay cuentas visibles.</div>';
+        if(visible.length===0) l.innerHTML = '<div style="text-align:center;width:100%;color:gray">Sin cuentas visibles.</div>';
 
-        // Sort & Render
-        visible.sort((a,b) => (a.order||0) - (b.order||0)).forEach(a => {
+        visible.sort((a,b)=>(a.order||0)-(b.order||0)).forEach(a => {
             const card = document.createElement('div'); card.className = 'bank-card';
             card.style.background = `linear-gradient(135deg, ${getBankColor(a.name)}, #1e293b)`;
             card.onclick = () => openEditAcc(a);
             
-            let extra = '';
-            let sentinelBadge = '';
-
-            if(a.type==='credit') {
-                // Sentinel Logic on Card
-                if(a.limit > 0) {
-                    const p = Math.min(100, (a.balance/a.limit)*100);
-                    extra = `<div style="height:4px;background:rgba(255,255,255,0.1);margin-top:10px;border-radius:2px"><div style="width:${p}%;background:${p>70?'var(--danger)':'var(--success)'};height:100%"></div></div>`;
-                }
-                
-                // Date alerts
-                if(a.payDay) {
-                    const today = new Date().getDate();
-                    let diff = a.payDay - today;
-                    if(diff < 0) diff += 30; // Approx next month
-                    
-                    if(diff <= 5 && a.balance > 0) {
-                        sentinelBadge = `<div class="sentinel-alert danger"><i class="fas fa-exclamation-circle"></i> VENCE EN ${diff} DÍAS</div>`;
-                    } else if (diff <= 10 && a.balance > 0) {
-                        sentinelBadge = `<div class="sentinel-alert warning"><i class="fas fa-clock"></i> Faltan ${diff} días</div>`;
-                    }
+            let extra = ''; let sentinel = '';
+            if(a.type==='credit' && a.limit>0) {
+                const p = Math.min(100, (a.balance/a.limit)*100);
+                extra = `<div style="height:4px;background:rgba(255,255,255,0.1);margin-top:10px;border-radius:2px"><div style="width:${p}%;background:${p>70?'var(--danger)':'var(--success)'};height:100%"></div></div>`;
+                if(a.payDay && a.balance > 0) {
+                    const diff = a.payDay - new Date().getDate();
+                    if(diff >= 0 && diff <= 5) sentinel = `<div class="sentinel-alert danger"><i class="fas fa-exclamation-circle"></i> VENCE EN ${diff} DÍAS</div>`;
+                    else if(diff > 5 && diff <= 10) sentinel = `<div class="sentinel-alert warning"><i class="fas fa-clock"></i> Faltan ${diff} días</div>`;
                 }
             }
 
-            let balDisplay = fmt(a.balance);
-            if(state.privacy) balDisplay = '****';
-
-            card.innerHTML = `
-                <div class="flex-between">
-                    <span style="font-size:0.65rem;opacity:0.7;font-weight:700;text-transform:uppercase">${a.type}</span>
-                    <span style="font-size:0.65rem;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:8px">${a.owner}</span>
-                </div>
-                <div class="font-bold" style="margin-top:8px">${a.name}</div>
-                <div style="font-size:1.4rem;font-weight:800;margin-top:5px">${balDisplay}</div>
-                ${extra}
-                ${sentinelBadge}
-            `;
+            let bal = fmt(a.balance); if(state.privacy) bal = '****';
+            card.innerHTML = `<div class="flex-between"><span style="font-size:0.65rem;opacity:0.7;font-weight:700;text-transform:uppercase">${a.type}</span><span style="font-size:0.65rem;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:8px">${a.owner}</span></div><div class="font-bold" style="margin-top:8px">${a.name}</div><div style="font-size:1.4rem;font-weight:800;margin-top:5px">${bal}</div>${extra}${sentinel}`;
             l.appendChild(card);
         });
-        
-        runBrain(visible, assets, debt);
+        runBrain(assets, debt);
     }
 
-    // --- 7. THE BRAIN & SENTINEL (LOGIC) ---
-    function runBrain(accs, assets, debt) {
+    // --- 7. BRAIN LOGIC ---
+    function runBrain(assets, debt) {
         const msg = $('brain-msg');
-        const badge = $('brain-badge');
-        
-        if (debt > assets) {
-            msg.innerHTML = `⚠️ <b>CRÍTICO:</b> Tus deudas superan tu liquidez. Entra a la calculadora para activar el modo de supervivencia.`;
-            msg.style.color = "#fca5a5";
-            badge.innerText = "ALERTA"; badge.style.background = "var(--danger)";
-        } else if (debt > 0) {
-            msg.innerHTML = `Tienes deudas activas. El sistema ha detectado oportunidades para ahorrar intereses.`;
-            msg.style.color = "white";
-            badge.innerText = "OPTIMIZAR"; badge.style.background = "var(--warning)";
-        } else {
-            msg.innerHTML = `✅ <b>EXCELENTE:</b> Finanzas sanas. Tu dinero está listo para ser invertido.`;
-            msg.style.color = "#86efac";
-            badge.innerText = "ESTABLE"; badge.style.background = "var(--success)";
-        }
+        if(debt > assets) { msg.innerHTML = `⚠️ <b>ALERTA:</b> Deudas superan liquidez. Revisa la estrategia.`; msg.style.color="#fca5a5"; }
+        else if(debt > 0) { msg.innerHTML = `Deuda activa detectada. El sistema sugiere optimizar pagos.`; msg.style.color="white"; }
+        else { msg.innerHTML = `✅ <b>EXCELENTE:</b> Finanzas sanas. Listo para invertir.`; msg.style.color="#86efac"; }
     }
 
     window.runStrategy = () => {
         const buffer = num('stratBuffer');
         state.buffer = buffer; localStorage.setItem('sf_buffer', buffer);
         
-        // 1. Calc Liquid
         const visible = state.accounts.filter(a => {
             if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint';
-            if(state.syncUnlocked) return true; 
-            return false;
+            if(state.syncUnlocked) return true; return false;
         });
         
         let liquid = visible.reduce((s,a) => (a.type==='debit' ? s+a.balance : s), 0);
-        
-        // Include Planning
         if($('stratIncludeIncome').checked) {
-            const today = new Date(); const limit = new Date(); limit.setDate(today.getDate() + 15);
-            const future = state.planning
-                .filter(p => { const d = new Date(p.date); return d >= today && d <= limit; })
-                .reduce((s,p) => s + (Number(p.amount)||0), 0);
-            liquid += future;
+            const limit = new Date(); limit.setDate(new Date().getDate() + 15);
+            liquid += state.planning.filter(p => new Date(p.date) <= limit).reduce((s,p) => s + (Number(p.amount)||0), 0);
         }
-        
         $('stratLiquid').innerText = fmt(liquid);
 
-        // 2. Logic
         const debts = visible.filter(a => a.type==='credit' && a.balance > 0);
         const container = $('actionPlan');
-        let html = '';
-        let totalPay = 0;
-        const today = new Date().getDate();
+        let html = ''; let totalPay = 0; const today = new Date().getDate();
 
         if (liquid < buffer) {
-            // SURVIVAL
-            html += `<div class="strat-card urgent"><strong>🚨 MODO SUPERVIVENCIA</strong><p class="text-sm">Protege tu efectivo. Paga solo lo mínimo.</p></div>`;
+            html += `<div class="strat-card urgent"><strong>🚨 MODO SUPERVIVENCIA</strong><p class="text-sm">Protege liquidez. Paga solo mínimos.</p></div>`;
             debts.forEach(d => {
                 const pay = d.min || (d.balance * 0.05);
-                html += renderStratCard(d, pay, "Pago Mínimo (Obligatorio)", "var(--warning)");
-                totalPay += pay;
+                html += renderStratCard(d, pay, "Pago Mínimo", "var(--warning)"); totalPay += pay;
             });
         } else if (debts.length > 0) {
-            // AVALANCHE + SENTINEL
             debts.sort((a,b) => {
-                // Priority: Imminent Date -> APR -> Balance
-                const urgA = (a.payDay && a.payDay > today && (a.payDay - today) <= 5) ? 1000 : 0;
-                const urgB = (b.payDay && b.payDay > today && (b.payDay - today) <= 5) ? 1000 : 0;
-                return (urgB + (b.apr||0)) - (urgA + (a.apr||0));
+                const ua = (a.payDay && a.payDay > today && (a.payDay - today) <= 5) ? 1000 : 0;
+                const ub = (b.payDay && b.payDay > today && (b.payDay - today) <= 5) ? 1000 : 0;
+                return (ub + (b.apr||0)) - (ua + (a.apr||0));
             });
-
             let available = liquid - buffer;
-            
             debts.forEach(d => {
-                const isUrgent = (d.payDay && d.payDay > today && (d.payDay - today) <= 5);
-                let pay = 0; 
-                let reason = "";
-                let color = "";
-
-                if (isUrgent) {
-                    if (available >= (d.noInt || d.balance)) {
-                        pay = d.noInt || d.balance;
-                        reason = "🔥 ¡Vence pronto! Paga total para no intereses.";
-                        color = "var(--primary)";
-                    } else {
-                        pay = d.min || (d.balance * 0.05);
-                        reason = "⚠️ Falta liquidez. Asegura el mínimo.";
-                        color = "var(--warning)";
-                    }
+                const urgent = (d.payDay && d.payDay > today && (d.payDay - today) <= 5);
+                let pay = 0; let reason = ""; let color = "";
+                if (urgent) {
+                    if (available >= (d.noInt || d.balance)) { pay = d.noInt || d.balance; reason = "🔥 Vence pronto. Paga Total."; color = "var(--primary)"; }
+                    else { pay = d.min || (d.balance * 0.05); reason = "⚠️ Falta liquidez. Paga Mínimo."; color = "var(--warning)"; }
                 } else {
-                    // Not urgent, check strategy
-                    if (available > d.balance) {
-                        pay = d.balance;
-                        reason = "Liquidar (Ahorra intereses futuros)";
-                        color = "var(--success)";
-                    } else {
-                        pay = d.min || (d.balance * 0.05);
-                        reason = "Pago Mínimo (En espera)";
-                        color = "var(--text-muted)";
-                    }
+                    if (available > d.balance) { pay = d.balance; reason = "Liquidar (Ahorra interés)"; color = "var(--success)"; }
+                    else { pay = d.min || (d.balance * 0.05); reason = "Pago Mínimo (Espera)"; color = "gray"; }
                 }
-                
-                // Cap pay at available if strictly needed? No, show real need.
-                available -= pay;
-                html += renderStratCard(d, pay, reason, color);
-                totalPay += pay;
+                available -= pay; html += renderStratCard(d, pay, reason, color); totalPay += pay;
             });
         } else {
-            // WEALTH
             const free = liquid - buffer;
-            html += `<div class="strat-card ok"><strong>🚀 LIBERTAD FINANCIERA</strong><p class="text-sm">Sin deudas tóxicas. Tienes <b>${fmt(free)}</b> disponibles para invertir.</p></div>`;
+            html += `<div class="strat-card ok"><strong>🚀 LIBERTAD FINANCIERA</strong><p class="text-sm">Excedente: <b>${fmt(free)}</b></p></div>`;
         }
-
         container.innerHTML = html;
-        
-        const final = liquid - buffer - totalToPay;
-        $('calcResult').innerText = final >= 0 ? `Restante: ${fmt(final)}` : `Faltante: ${fmt(final)}`;
-        $('calcResult').style.color = final >= 0 ? 'var(--success)' : 'var(--danger)';
+        $('calcResult').innerText = (liquid - buffer - totalPay) >= 0 ? `Restante: ${fmt(liquid - buffer - totalPay)}` : `Faltante: ${fmt(liquid - buffer - totalPay)}`;
     };
 
     function renderStratCard(acc, amt, reason, color) {
-        return `<div class="strat-card" style="border-left:4px solid ${color}" onclick="execStrat('${acc.id}', '${acc.name}', ${amt})">
-            <div class="flex-between">
-                <div><b>${acc.name}</b><div class="text-xs text-muted">${reason}</div></div>
-                <div style="text-align:right"><div class="font-bold">-${fmt(amt)}</div><div class="text-xs" style="color:var(--primary)">PAGAR</div></div>
-            </div>
-        </div>`;
+        return `<div class="strat-card" style="border-left-color:${color}" onclick="execStrat('${acc.id}', '${acc.name}', ${amt})"><div class="flex-between"><div><b>${acc.name}</b><div class="text-xs text-muted">${reason}</div></div><div style="text-align:right"><div class="font-bold">-${fmt(amt)}</div><div class="text-xs" style="color:var(--primary)">PAGAR</div></div></div></div>`;
     }
 
     window.execStrat = (id, name, amt) => {
-        openTxModal(); setTxMode('payment'); $('payTo').value = id; 
-        $('txAmount').value = amt.toFixed(2); $('txDesc').value = `Pago: ${name}`;
-        // Auto source
-        const srcs = state.accounts.filter(a => a.type === 'debit' && a.balance >= amt);
-        if(srcs.length > 0) $('payFrom').value = srcs[0].id;
+        openTxModal(); setTxMode('payment'); $('payTo').value = id; $('txAmount').value = amt.toFixed(2); $('txDesc').value = `Pago: ${name}`;
+        const srcs = state.accounts.filter(a => a.type === 'debit' && a.balance >= amt); if(srcs.length > 0) $('payFrom').value = srcs[0].id;
         closeModal('modalStrategy');
     };
-
-    window.openStrategyModal = () => { openModal('modalStrategy'); runStrategy(); };
 
     // --- 8. TRANSACTIONS & FILTERING ---
     function loadTransactions() {
         const m = $('dateFilter').value; if(!m) return;
         const start = m + "-01"; const end = m + "-31";
-        
         db.collection('transactions').where('date','>=',start).where('date','<=',end).orderBy('date','desc').limit(60).onSnapshot(s => {
             const l = $('txList'); l.innerHTML = '';
-            state.txs = [];
-            s.forEach(d => state.txs.push({id:d.id, ...d.data()}));
-            
-            // Filter logic
-            const visible = state.txs.filter(t => {
-                if(state.filter === 'all' && state.syncUnlocked) return true;
-                const acc = state.accounts.find(a => a.id === (t.accId || t.fromId));
-                if(!acc) return true; 
-                if(state.filter === 'me') return acc.owner === 'me' || acc.owner === 'joint';
-                if(state.filter === 'partner' && state.syncUnlocked) return acc.owner === 'partner' || acc.owner === 'joint';
-                return false;
-            });
-
-            if(visible.length === 0) l.innerHTML = '<div style="text-align:center;padding:20px;color:gray">Sin movimientos</div>';
-
-            visible.forEach(t => {
-                const color = t.type==='expense'?'var(--danger)':(t.type==='income'?'var(--success)':'var(--info)');
-                const icon = t.type==='expense'?'fa-arrow-down':(t.type==='income'?'fa-arrow-up':'fa-exchange-alt');
-                const div = document.createElement('div'); div.className = 'tx-item';
-                div.onclick = () => openEditTx(t);
-                div.innerHTML = `<div style="display:flex;align-items:center"><div class="tx-icon" style="color:${color}"><i class="fas ${icon}"></i></div><div><div class="font-bold">${t.desc}</div><small class="text-muted">${t.date}</small></div></div><div class="font-bold" style="color:${color}">${fmt(t.amount)}</div>`;
-                l.appendChild(div);
+            s.forEach(d => {
+                const t = {id:d.id, ...d.data()};
+                let show = false;
+                if(state.filter === 'all' && state.syncUnlocked) show = true;
+                else {
+                    const acc = state.accounts.find(a => a.id === (t.accId || t.fromId));
+                    if(!acc) show = true; 
+                    else if(state.filter === 'me' && (acc.owner === 'me' || acc.owner === 'joint')) show = true;
+                    else if(state.filter === 'partner' && state.syncUnlocked && (acc.owner === 'partner' || acc.owner === 'joint')) show = true;
+                }
+                if(show) {
+                    const color = t.type==='expense'?'var(--danger)':(t.type==='income'?'var(--success)':'var(--info)');
+                    const icon = t.type==='expense'?'fa-arrow-down':(t.type==='income'?'fa-arrow-up':'fa-exchange-alt');
+                    const div = document.createElement('div'); div.className = 'tx-item';
+                    div.onclick = () => { if(confirm('¿Borrar?')) delTx(t.id); };
+                    div.innerHTML = `<div style="display:flex;align-items:center"><div class="tx-icon" style="color:${color}"><i class="fas ${icon}"></i></div><div><div class="font-bold">${t.desc}</div><small class="text-muted">${t.date}</small></div></div><div class="font-bold" style="color:${color}">${fmt(t.amount)}</div>`;
+                    l.appendChild(div);
+                }
             });
         });
     }
 
-    // --- 9. SECURITY & SYNC ---
-    window.togglePrivacy = () => {
-        state.privacy = !state.privacy;
-        $('privacy-label').innerText = state.privacy ? "Oculto" : "Visible";
-        renderAccounts();
-    };
+    // --- 9. SECURITY & SETTINGS ---
+    window.togglePrivacy = () => { state.privacy = !state.privacy; $('privacy-label').innerText = state.privacy ? "Oculto" : "Visible"; renderAccounts(); };
+    window.unlockSync = (t) => { if(state.syncUnlocked) setFilter(t); else { window.pendingFilter = t; openModal('modalLock'); } };
+    window.checkPin = () => { if(val('unlockPin') === state.settings.pin) { state.syncUnlocked = true; closeModal('modalLock'); setFilter(window.pendingFilter); $('tabPartner').classList.remove('locked'); $('tabAll').classList.remove('locked'); } else alert("PIN Incorrecto"); $('unlockPin').value = ''; };
+    window.setFilter = (f) => { state.filter = f; ['tabMe','tabPartner','tabAll'].forEach(t => $(t).className = 'tab-btn'); if(f==='me') $('tabMe').classList.add('active'); if(f==='partner') { $('tabPartner').classList.add('active'); $('tabPartner').classList.remove('locked'); } if(f==='all') { $('tabAll').classList.add('active'); $('tabAll').classList.remove('locked'); } renderAccounts(); };
+    window.saveSettings = () => { state.settings.me=val('confMe'); state.settings.partner=val('confPartner'); state.settings.pin=val('confPin'); localStorage.setItem('sf_conf', JSON.stringify(state.settings)); updateLabels(); closeModal('modalSettings'); };
+    window.updateLabels = () => { $('tabMe').innerText=state.settings.me; $('tabPartner').innerText=state.settings.partner; const s=$('accOwner'); if(s){s.options[0].text=state.settings.me; s.options[1].text=state.settings.partner;} };
 
-    window.unlockSync = (target) => {
-        if(state.syncUnlocked) setFilter(target);
-        else {
-            window.pendingFilter = target;
-            openModal('modalLock');
-        }
-    };
-
-    window.checkPin = () => {
-        if(val('unlockPin') === state.settings.pin) {
-            state.syncUnlocked = true;
-            closeModal('modalLock');
-            setFilter(window.pendingFilter);
-            $('tabPartner').classList.remove('locked');
-            $('tabAll').classList.remove('locked');
-        } else {
-            alert("PIN Incorrecto");
-        }
-        $('unlockPin').value = '';
-    };
-
-    window.setFilter = (f) => {
-        state.filter = f;
-        ['tabMe','tabPartner','tabAll'].forEach(t => $(t).className = 'tab-btn');
-        if(f==='me') $('tabMe').classList.add('active');
-        if(f==='partner') { $('tabPartner').classList.add('active'); $('tabPartner').classList.remove('locked'); }
-        if(f==='all') { $('tabAll').classList.add('active'); $('tabAll').classList.remove('locked'); }
-        renderAccounts();
-    };
-
-    // --- 10. CRUD ACTIONS ---
-    $('formAcc').onsubmit = async (e) => {
-        e.preventDefault(); loading(true);
-        const d = { 
-            name: val('accName'), type: val('accType'), balance: num('accBalance'), limit: num('accLimit'), owner: val('accOwner'),
-            cut: num('accCut'), payDay: num('accPayDay'), noInt: num('accNoInt'), min: num('accMin'), apr: num('accApr'),
-            card: val('accCard'), clabe: val('accClabe')
-        };
-        const id = val('editAccId');
-        if(id) await db.collection('accounts').doc(id).update(d); else await db.collection('accounts').add(d);
-        closeModal('modalAcc'); loading(false);
-    };
-
-    $('formTx').onsubmit = async (e) => {
-        e.preventDefault(); loading(true);
-        const id = val('editTxId');
-        const d = { amount: num('txAmount'), desc: val('txDesc'), date: val('txDate'), type: val('txMode'), cat: val('txCat'), accId: val('txAccount')||null, fromId: val('payFrom')||null, toId: val('payTo')||null };
-        const b = db.batch(); const r = id ? db.collection('transactions').doc(id) : db.collection('transactions').doc();
-        
-        if(!id) { // Solo afectar saldo si es nueva
-            if(d.type==='expense'){ const a=state.accounts.find(x=>x.id===d.accId); let nb=a.balance; if(a.type==='credit')nb+=d.amount;else nb-=d.amount; b.update(db.collection('accounts').doc(a.id),{balance:nb}); } 
-            else if(d.type==='income'){ const a=state.accounts.find(x=>x.id===d.accId); let nb=a.balance; if(a.type==='credit')nb-=d.amount;else nb+=d.amount; b.update(db.collection('accounts').doc(a.id),{balance:nb}); } 
-            else if(d.type==='payment'){ const f=state.accounts.find(x=>x.id===d.fromId); const t=state.accounts.find(x=>x.id===d.toId); b.update(db.collection('accounts').doc(f.id),{balance:f.balance-d.amount}); let tb=t.balance; if(t.type==='credit')tb-=d.amount;else tb+=d.amount; b.update(db.collection('accounts').doc(t.id),{balance:tb}); }
-        }
-        b.set(r,d); await b.commit(); loading(false); closeModal('modalTx');
-    };
-
-    // --- COBRANZA & PLANNING ---
-    window.openCollectModal = () => {
-        const fs=$('colFrom'); fs.innerHTML=''; const ts=$('colTo'); ts.innerHTML='';
-        state.accounts.filter(a=>a.type==='receivable').forEach(a=>fs.innerHTML+=`<option value="${a.id}">${a.name}</option>`);
-        state.accounts.filter(a=>a.type==='debit').forEach(a=>ts.innerHTML+=`<option value="${a.id}">${a.name}</option>`);
-        if(fs.children.length===0) return alert("Crea una cuenta 'Por Cobrar' primero");
-        $('colDate').valueAsDate = new Date(); openModal('modalCollect');
-    };
-    $('formCollect').onsubmit = async (e) => {
-        e.preventDefault(); loading(true); const amt=num('colAmount'); const f=val('colFrom'); const t=val('colTo');
-        const b = db.batch();
-        const fa = state.accounts.find(a=>a.id===f); b.update(db.collection('accounts').doc(f),{balance:fa.balance-amt});
-        const ta = state.accounts.find(a=>a.id===t); b.update(db.collection('accounts').doc(t),{balance:ta.balance+amt});
-        const r = db.collection('transactions').doc();
-        b.set(r, {amount:amt, date:val('colDate'), desc:`Cobro: ${fa.name}`, type:'transfer', fromId:f, toId:t, cat:'income'});
-        await b.commit(); loading(false); closeModal('modalCollect');
-    };
-
-    function renderPlanning() {
-        const l = $('planList'); l.innerHTML = '';
-        state.planning.sort((a,b)=>a.date.localeCompare(b.date)).forEach(p => {
-            const div = document.createElement('div');
-            div.style.cssText = "display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(255,255,255,0.05);align-items:center";
-            div.innerHTML = `<div><div class="font-bold">${p.desc}</div><small class="text-muted">${p.date}</small></div><div class="font-bold" style="color:var(--success)">+${fmt(p.amount)} <i class="fas fa-trash" style="margin-left:10px;color:var(--danger);cursor:pointer" onclick="delPlan('${p.id}')"></i></div>`;
-            l.appendChild(div);
-        });
-    }
+    // --- 10. CRUD & HELPERS ---
+    $('formAcc').onsubmit = async (e) => { e.preventDefault(); loading(true); const d = { name: val('accName'), type: val('accType'), balance: num('accBalance'), limit: num('accLimit'), owner: val('accOwner'), cut: num('accCut'), payDay: num('accPayDay'), noInt: num('accNoInt'), min: num('accMin'), apr: num('accApr'), card: val('accCard'), clabe: val('accClabe') }; const id = val('editAccId'); if(id) await db.collection('accounts').doc(id).update(d); else await db.collection('accounts').add(d); closeModal('modalAcc'); loading(false); };
+    $('formTx').onsubmit = async (e) => { e.preventDefault(); loading(true); const id = val('editTxId'); const d = { amount: num('txAmount'), desc: val('txDesc'), date: val('txDate'), type: val('txMode'), cat: val('txCat'), accId: val('txAccount')||null, fromId: val('payFrom')||null, toId: val('payTo')||null }; const b = db.batch(); const r = id ? db.collection('transactions').doc(id) : db.collection('transactions').doc(); if(!id) { if(d.type==='expense'){ const a=state.accounts.find(x=>x.id===d.accId); let nb=a.balance; if(a.type==='credit')nb+=d.amount;else nb-=d.amount; b.update(db.collection('accounts').doc(a.id),{balance:nb}); } else if(d.type==='income'){ const a=state.accounts.find(x=>x.id===d.accId); let nb=a.balance; if(a.type==='credit')nb-=d.amount;else nb+=d.amount; b.update(db.collection('accounts').doc(a.id),{balance:nb}); } else if(d.type==='payment'){ const f=state.accounts.find(x=>x.id===d.fromId); const t=state.accounts.find(x=>x.id===d.toId); b.update(db.collection('accounts').doc(f.id),{balance:f.balance-d.amount}); let tb=t.balance; if(t.type==='credit')tb-=d.amount;else tb+=d.amount; b.update(db.collection('accounts').doc(t.id),{balance:tb}); } } b.set(r,d); await b.commit(); loading(false); closeModal('modalTx'); };
+    
+    // Planning & Collect
+    window.openCollectModal = () => { const fs=$('colFrom'); fs.innerHTML=''; const ts=$('colTo'); ts.innerHTML=''; state.accounts.filter(a=>a.type==='receivable').forEach(a=>fs.innerHTML+=`<option value="${a.id}">${a.name}</option>`); state.accounts.filter(a=>a.type==='debit').forEach(a=>ts.innerHTML+=`<option value="${a.id}">${a.name}</option>`); if(fs.children.length===0) return alert("Crea una cuenta 'Por Cobrar' primero"); $('colDate').valueAsDate = new Date(); openModal('modalCollect'); };
+    $('formCollect').onsubmit = async (e) => { e.preventDefault(); loading(true); const amt=num('colAmount'); const f=val('colFrom'); const t=val('colTo'); const b = db.batch(); const fa = state.accounts.find(a=>a.id===f); b.update(db.collection('accounts').doc(f),{balance:fa.balance-amt}); const ta = state.accounts.find(a=>a.id===t); b.update(db.collection('accounts').doc(t),{balance:ta.balance+amt}); const r = db.collection('transactions').doc(); b.set(r, {amount:amt, date:val('colDate'), desc:`Cobro: ${fa.name}`, type:'transfer', fromId:f, toId:t, cat:'income'}); await b.commit(); loading(false); closeModal('modalCollect'); };
+    function renderPlanning() { const l=$('planList'); l.innerHTML = ''; state.planning.sort((a,b)=>a.date.localeCompare(b.date)).forEach(p => { const d=document.createElement('div'); d.style.cssText="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid rgba(255,255,255,0.05);align-items:center"; d.innerHTML=`<div><div class="font-bold">${p.desc}</div><small class="text-muted">${p.date}</small></div><div class="font-bold" style="color:var(--success)">+${fmt(p.amount)} <i class="fas fa-trash" style="margin-left:10px;color:var(--danger);cursor:pointer" onclick="delPlan('${p.id}')"></i></div>`; l.appendChild(d); }); }
     $('formPlan').onsubmit = async (e) => { e.preventDefault(); await db.collection('planning').add({desc:val('planDesc'), amount:num('planAmount'), date:val('planDate')}); $('formPlan').reset(); };
     window.delPlan = (id) => { if(confirm('¿Borrar?')) db.collection('planning').doc(id).delete(); };
 
-    // --- HELPER UI ---
+    // UI Helpers
     window.openTxModal = () => { $('editTxId').value=''; $('btnDelTx').classList.add('hidden'); $('txDate').valueAsDate=new Date(); setTxMode('expense'); openModal('modalTx'); };
     window.openEditTx = (t) => { $('editTxId').value=t.id; $('btnDelTx').classList.remove('hidden'); $('txAmount').value=t.amount; $('txDesc').value=t.desc; $('txDate').value=t.date; setTxMode(t.type==='transfer'?'payment':t.type); if(t.type==='transfer'){$('payFrom').value=t.fromId;$('payTo').value=t.toId}else{$('txAccount').value=t.accId}; openModal('modalTx'); };
     window.openAccModal = () => { $('formAcc').reset(); $('editAccId').value=''; $('btnDelAcc').classList.add('hidden'); openModal('modalAcc'); };
-    window.openEditAcc = (a) => { $('editAccId').value=a.id; $('btnDelAcc').classList.remove('hidden'); $('accName').value=a.name; $('accType').value=a.type; $('accBalance').value=a.balance; $('accOwner').value=a.owner; if(a.cut)$('accCut').value=a.cut; if(a.payDay)$('accPayDay').value=a.payDay; if(a.noInt)$('accNoInt').value=a.noInt; if(a.min)$('accMin').value=a.min; if(a.card)$('accCard').value=a.card; if(a.clabe)$('accClabe').value=a.clabe; toggleFields(); openModal('modalAcc'); };
+    window.openEditAcc = (a) => { $('editAccId').value=a.id; $('btnDelAcc').classList.remove('hidden'); $('accName').value=a.name; $('accType').value=a.type; $('accBalance').value=a.balance; $('accOwner').value=a.owner; if(a.cut)$('accCut').value=a.cut; if(a.payDay)$('accPayDay').value=a.payDay; if(a.noInt)$('accNoInt').value=a.noInt; if(a.min)$('accMin').value=a.min; if(a.card)$('accCard').value=a.card; if(a.clabe)$('accClabe').value=a.clabe; if(a.apr)$('accApr').value=a.apr; toggleFields(); openModal('modalAcc'); };
     window.setTxMode = (m) => { $('txMode').value=m; $('divPay').classList.toggle('hidden',m!=='payment'); $('divNormal').classList.toggle('hidden',m==='payment'); const s=(id)=>{$(id).innerHTML='';state.accounts.forEach(a=>$(id).innerHTML+=`<option value="${a.id}">${a.name}</option>`)}; s('txAccount');s('payFrom');s('payTo'); ['btnExp','btnInc','btnPay'].forEach(b=>$(b).className='btn btn-text'); $(m==='expense'?'btnExp':(m==='income'?'btnInc':'btnPay')).className='btn btn-primary'; };
     window.toggleFields = () => { const t=val('accType'); $('fieldsCredit').classList.toggle('hidden', t!=='credit'); };
     window.delAcc = async () => { if(confirm("¿Borrar?")) { await db.collection('accounts').doc(val('editAccId')).delete(); closeModal('modalAcc'); }};
-    window.delTx = async () => { if(confirm("¿Borrar?")) { await db.collection('transactions').doc(val('editTxId')).delete(); closeModal('modalTx'); }};
-    window.saveSettings = () => { state.settings.me=val('confMe'); state.settings.partner=val('confPartner'); state.settings.pin=val('confPin'); localStorage.setItem('sf_conf', JSON.stringify(state.settings)); updateLabels(); closeModal('modalSettings'); };
-    window.updateLabels = () => { $('tabMe').innerText=state.settings.me; $('tabPartner').innerText=state.settings.partner; const s=$('accOwner'); if(s){s.options[0].text=state.settings.me; s.options[1].text=state.settings.partner;} };
+    window.delTx = async (id) => { await db.collection('transactions').doc(id||val('editTxId')).delete(); closeModal('modalTx'); };
+    window.openStrategyModal = () => { openModal('modalStrategy'); runStrategy(); };
     window.getBankColor = (n) => { n=n.toLowerCase(); if(n.includes('bbva'))return '#004481'; if(n.includes('nu'))return '#820ad1'; if(n.includes('santander'))return '#ec0000'; if(n.includes('amex'))return '#006fcf'; return '#1e293b'; };
 
-    // --- COPIAR CREDENCIALES AL FINAL ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyC2Rw1f-2omvR6be9lHwbfhYT-JxyN3gmY",
-        authDomain: "misfinanzas-860a5.firebaseapp.com",
-        projectId: "misfinanzas-860a5",
-        storageBucket: "misfinanzas-860a5.firebasestorage.app",
-        messagingSenderId: "472835658078",
-        appId: "1:472835658078:web:b4224d8a35b4091cafffcf"
-    };
-    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 </script>
 </body>
 </html>
