@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Titanium Pro</title>
+    <title>SmartFinance | Titanium v1.1</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -141,14 +141,14 @@
 </head>
 <body>
 
-<div id="loading-overlay"><div class="spinner"></div><div style="margin-top:20px; font-weight:600; letter-spacing:1px; font-size:0.9rem">CARGANDO BASE DE DATOS...</div></div>
+<div id="loading-overlay"><div class="spinner"></div><div style="margin-top:20px; font-weight:600; letter-spacing:1px; font-size:0.9rem">SINCRONIZANDO DATOS...</div></div>
 
 <div id="auth-screen">
     <div style="width:80px; height:80px; background:var(--primary); border-radius:24px; display:flex; align-items:center; justify-content:center; margin-bottom:30px; box-shadow:0 0 40px rgba(99,102,241,0.4)">
         <i class="fas fa-layer-group" style="font-size: 2.5rem; color: white;"></i>
     </div>
     <h1 style="margin:0; font-weight:800; letter-spacing:-1px; font-size:2.5rem">SmartFinance</h1>
-    <p style="color:var(--text-muted); margin-bottom:50px; font-weight:300; letter-spacing:1px">Titanium Pro</p>
+    <p style="color:var(--text-muted); margin-bottom:50px; font-weight:300; letter-spacing:1px">Titanium Pro Fix</p>
     <button class="btn btn-primary" style="max-width:300px; display:flex; align-items:center; justify-content:center; gap:12px" onclick="login()">
         <i class="fab fa-google"></i> Continuar con Google
     </button>
@@ -207,7 +207,7 @@
             <div class="stat-item"><span>Liquidez (Efectivo)</span><span style="color:var(--success)" id="assetDisplay">--</span></div>
             <div class="stat-item"><span>Deuda Total</span><span style="color:var(--danger)" id="debtDisplay">--</span></div>
             <div class="stat-item"><span>Por Cobrar</span><span style="color:var(--pending)" id="pendDisplay">--</span></div>
-            <div class="stat-item"><span>Proyectado (15d)</span><span style="color:var(--info)" id="goalsDisplay">--</span></div>
+            <div class="stat-item"><span>Sueldo Proyectado</span><span style="color:var(--info)" id="goalsDisplay">--</span></div>
         </div>
     </div>
 
@@ -310,6 +310,13 @@
                 <div class="input-group"><label>Saldo Actual</label><input type="number" id="accBalance" step="0.01" required></div>
                 <div class="input-group"><label>Límite (Crédito)</label><input type="number" id="accLimit" step="0.01"></div>
             </div>
+            
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.05)">
+                <label style="color:var(--info)"><i class="fas fa-lock"></i> Datos de Bóveda</label>
+                <div class="input-group" style="margin-bottom:10px"><input type="text" id="accCard" placeholder="Número Tarjeta (Solo info)"></div>
+                <div class="input-group" style="margin-bottom:0"><input type="text" id="accClabe" placeholder="CLABE Interbancaria"></div>
+            </div>
+
             <div id="fieldsCredit" class="hidden" style="background:rgba(239,68,68,0.05); padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid rgba(239,68,68,0.2)">
                 <label style="color:var(--danger); margin-bottom:15px"><i class="fas fa-shield-alt"></i> Datos del Centinela</label>
                 <div class="row-2">
@@ -417,7 +424,7 @@
     // Estado Global
     const state = { 
         user: null, accounts: [], txs: [], planning: [], 
-        filter: 'me', typeFilter: 'all', // NUEVO: Filtro por tipo
+        filter: 'me', typeFilter: 'all', 
         syncUnlocked: false, privacy: false,
         settings: JSON.parse(localStorage.getItem('sf_conf')) || { pin: '0000', me:'Mío', partner:'Pareja' },
         buffer: parseFloat(localStorage.getItem('sf_buffer')) || 0
@@ -479,10 +486,11 @@
                 const da = d.data();
                 state.accounts.push({
                     id: d.id, ...da,
-                    // Asegurar que los campos de BD se conviertan a números correctamente
                     balance: Number(da.balance)||0, limit: Number(da.limit)||0,
                     apr: Number(da.apr)||0, cut: Number(da.cut)||0, payDay: Number(da.payDay)||0,
-                    noInt: Number(da.noInt)||0, min: Number(da.min)||0
+                    noInt: Number(da.noInt)||0, min: Number(da.min)||0,
+                    // Recuperando campos string que no necesitan conversión
+                    card: da.card || '', clabe: da.clabe || ''
                 });
             });
             renderAccounts();
@@ -493,13 +501,14 @@
             state.planning = [];
             s.forEach(d => state.planning.push({id:d.id, ...d.data()}));
             renderPlanning();
+            renderAccounts(); // FIX: Actualizar dashboard cuando cambian los ingresos proyectados
         });
         
         loadTransactions();
     }
 
     // ==========================================
-    // 5. RENDERIZADO DE CUENTAS (Con Rescate de BD y Filtros)
+    // 5. RENDERIZADO DE CUENTAS
     // ==========================================
     function renderAccounts() {
         const l = $('accList'); l.innerHTML = '';
@@ -513,7 +522,7 @@
             else if(state.filter === 'partner' && state.syncUnlocked) ownerMatch = (a.owner === 'partner' || a.owner === 'joint');
             else if(state.filter === 'all' && state.syncUnlocked) ownerMatch = true;
 
-            // Filtro Tipo (NUEVO)
+            // Filtro Tipo
             let typeMatch = true;
             if(state.typeFilter === 'debit') typeMatch = (a.type === 'debit');
             else if(state.typeFilter === 'credit') typeMatch = (a.type === 'credit' || a.type === 'receivable');
@@ -521,11 +530,8 @@
             return ownerMatch && typeMatch;
         });
 
-        // 2. CÁLCULO TOTALES (Siempre globales para el resumen, no afectados por filtro de tipo para no asustar)
-        // Nota: Si prefieres que el resumen cambie con el filtro, mueve esto dentro de "visible".
-        // Mantengo el resumen global basado en filtro de usuario, pero el filtro de tipo solo afecta la lista.
+        // 2. CÁLCULO TOTALES
         state.accounts.forEach(a => {
-            // Solo contar si pertenece al usuario visible
             let isVisibleUser = false;
             if(state.filter === 'me') isVisibleUser = (a.owner === 'me' || a.owner === 'joint');
             else if(state.filter === 'partner' && state.syncUnlocked) isVisibleUser = (a.owner === 'partner' || a.owner === 'joint');
@@ -543,6 +549,7 @@
         $('pendDisplay').innerText = fmt(pending);
         $('netDisplay').innerText = fmt(assets - debt);
         
+        // FIX: Proyección a 15 días (Recuperada función visual)
         const today = new Date(); const limit = new Date(); limit.setDate(today.getDate()+15);
         const nextInc = state.planning.filter(p=>new Date(p.date)>=today && new Date(p.date)<=limit).reduce((s,p)=>s+Number(p.amount),0);
         $('goalsDisplay').innerText = "+" + fmt(nextInc);
@@ -566,8 +573,7 @@
                     extra += `<div style="height:6px;background:rgba(255,255,255,0.1);margin-top:10px;border-radius:3px;overflow:hidden"><div style="width:${p}%;background:${p>70?'var(--danger)':'var(--success)'};height:100%"></div></div>`;
                 }
                 
-                // === RESCATE DE DATOS DE BD ===
-                // Si la BD tiene valores para No Intereses o Mínimo, los mostramos en la tarjeta
+                // Mostrar info de BD si existe
                 if(a.noInt > 0 || a.min > 0) {
                      extra += `<div class="card-data-row">
                         <span>P. No Int: <b style="color:white">${fmt(a.noInt)}</b></span>
@@ -613,7 +619,6 @@
     // ==========================================
     window.setTypeFilter = (t) => {
         state.typeFilter = t;
-        // Actualizar UI Píldoras
         ['ft-all','ft-debit','ft-credit'].forEach(id => $(id).classList.remove('active'));
         $(`ft-${t}`).classList.add('active');
         renderAccounts();
@@ -763,7 +768,8 @@
         e.preventDefault(); loading(true);
         const d = { 
             name: val('accName'), type: val('accType'), balance: num('accBalance'), limit: num('accLimit'), owner: val('accOwner'),
-            cut: num('accCut'), payDay: num('accPayDay'), noInt: num('accNoInt'), min: num('accMin'), apr: num('accApr')
+            cut: num('accCut'), payDay: num('accPayDay'), noInt: num('accNoInt'), min: num('accMin'), apr: num('accApr'),
+            card: val('accCard'), clabe: val('accClabe') // Guardando datos recuperados
         };
         const id = val('editAccId');
         if(id) await db.collection('accounts').doc(id).update(d); else await db.collection('accounts').add(d);
@@ -821,7 +827,24 @@
     window.openEditTx = (t) => { $('editTxId').value=t.id; $('btnDelTx').classList.remove('hidden'); $('txAmount').value=t.amount; $('txDesc').value=t.desc; $('txDate').value=t.date; $('txCat').value=t.cat; setTxMode(t.type==='transfer'?'payment':t.type); if(t.type==='transfer'){$('payFrom').value=t.fromId;$('payTo').value=t.toId}else{$('txAccount').value=t.accId}; openModal('modalTx'); };
     
     window.openAccModal = () => { $('formAcc').reset(); $('editAccId').value=''; $('btnDelAcc').classList.add('hidden'); toggleFields(); openModal('modalAcc'); };
-    window.openEditAcc = (a) => { $('editAccId').value=a.id; $('btnDelAcc').classList.remove('hidden'); $('accName').value=a.name; $('accType').value=a.type; $('accBalance').value=a.balance; $('accOwner').value=a.owner; if(a.cut)$('accCut').value=a.cut; if(a.payDay)$('accPayDay').value=a.payDay; if(a.noInt)$('accNoInt').value=a.noInt; if(a.min)$('accMin').value=a.min; if(a.apr)$('accApr').value=a.apr; toggleFields(); openModal('modalAcc'); };
+    window.openEditAcc = (a) => { 
+        $('editAccId').value=a.id; 
+        $('btnDelAcc').classList.remove('hidden'); 
+        $('accName').value=a.name; 
+        $('accType').value=a.type; 
+        $('accBalance').value=a.balance; 
+        $('accOwner').value=a.owner; 
+        // Llenar campos recuperados
+        if(a.cut)$('accCut').value=a.cut; 
+        if(a.payDay)$('accPayDay').value=a.payDay; 
+        if(a.noInt)$('accNoInt').value=a.noInt; 
+        if(a.min)$('accMin').value=a.min; 
+        if(a.apr)$('accApr').value=a.apr; 
+        if(a.card)$('accCard').value=a.card; 
+        if(a.clabe)$('accClabe').value=a.clabe; 
+        toggleFields(); 
+        openModal('modalAcc'); 
+    };
     
     window.setTxMode = (m) => { 
         $('txMode').value=m; 
