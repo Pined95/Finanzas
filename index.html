@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Titanium Ultimate</title>
+    <title>SmartFinance | Titanium Fixed</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v3.0 === */
+        /* === TITANIUM DESIGN SYSTEM v3.1 === */
         :root { 
             --bg: #050505; 
             --app-bg: #0b0f19;
@@ -28,6 +28,7 @@
             --danger: #ef4444; 
             --warning: #f59e0b; 
             --info: #0ea5e9; 
+            --pending: #fbbf24; /* Color para Por Cobrar */
             --radius: 24px;
             --shadow: 0 10px 40px -10px rgba(0,0,0,0.7);
             --safe-bottom: env(safe-area-inset-bottom);
@@ -41,7 +42,6 @@
             color: var(--text); 
             margin: 0; 
             min-height: 100vh;
-            /* PC Centering Logic */
             display: flex;
             justify-content: center;
             background-image: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #050505 50%);
@@ -50,7 +50,7 @@
         /* App Container (Phone Simulator on PC) */
         #app-container {
             width: 100%;
-            max-width: 480px; /* Ancho máximo de móvil */
+            max-width: 480px; 
             background: var(--app-bg);
             min-height: 100vh;
             position: relative;
@@ -67,7 +67,7 @@
         .font-bold { font-weight: 700; }
         .text-muted { color: var(--text-muted); }
         
-        /* Privacy Blur Logic - Global */
+        /* Privacy Blur Logic */
         body.privacy-active .privacy-target { filter: blur(6px); transition: filter 0.3s; }
         body.privacy-active .privacy-target:hover { filter: blur(0); }
 
@@ -107,9 +107,9 @@
         .summary-card { padding: 24px; }
         .net-val { font-size: 2.8rem; font-weight: 800; margin: 10px 0; letter-spacing: -1.5px; line-height: 1; }
         
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
-        .stat-item span:first-child { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-        .stat-item span:last-child { font-size: 1.2rem; font-weight: 700; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+        .stat-item span:first-child { display: block; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+        .stat-item span:last-child { font-size: 1rem; font-weight: 700; }
 
         /* Filters & Accounts */
         .filter-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; -ms-overflow-style: none; scrollbar-width: none; }
@@ -155,6 +155,7 @@
         .btn:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
         .btn-text { background: transparent; color: var(--text-muted); }
+        .btn-success { background: rgba(16, 185, 129, 0.1); color: var(--success); border:1px solid rgba(16, 185, 129, 0.3); }
         
         /* FAB */
         .fab { position: absolute; bottom: 30px; right: 25px; width: 64px; height: 64px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: white; box-shadow: 0 10px 25px rgba(99,102,241,0.5); z-index: 100; cursor: pointer; transition: transform 0.2s; position: fixed; }
@@ -183,7 +184,7 @@
             <i class="fas fa-layer-group" style="font-size: 2.5rem; color: white;"></i>
         </div>
         <h1 style="margin:0; font-weight:800; font-size:2.5rem">SmartFinance</h1>
-        <p style="color:var(--text-muted); margin-bottom:50px;">Titanium Ultimate</p>
+        <p style="color:var(--text-muted); margin-bottom:50px;">Titanium Fixed</p>
         <button class="btn btn-primary" style="max-width:300px" onclick="login()">
             <i class="fab fa-google"></i> Continuar con Google
         </button>
@@ -228,13 +229,14 @@
 
         <div class="widget summary-card">
             <div class="flex-between">
-                <small class="font-bold text-muted">PATRIMONIO NETO</small>
+                <small class="font-bold text-muted">PATRIMONIO NETO (Sin Cobros)</small>
                 <div onclick="openChartModal()" style="cursor:pointer; padding:5px"><i class="fas fa-chart-pie text-muted"></i></div>
             </div>
             <div class="net-val privacy-target" id="netDisplay">$0.00</div>
             <div class="stat-grid">
-                <div class="stat-item"><span>Liquidez Total</span><span style="color:var(--success)" id="assetDisplay" class="privacy-target">--</span></div>
+                <div class="stat-item"><span>Liquidez (Real)</span><span style="color:var(--success)" id="assetDisplay" class="privacy-target">--</span></div>
                 <div class="stat-item"><span>Deuda Total</span><span style="color:var(--danger)" id="debtDisplay" class="privacy-target">--</span></div>
+                <div class="stat-item"><span>Por Cobrar</span><span style="color:var(--pending)" id="pendDisplay" class="privacy-target">--</span></div>
             </div>
         </div>
 
@@ -245,8 +247,9 @@
         
         <div class="filter-scroll">
             <div class="filter-pill active" id="ft-all" onclick="setTypeFilter('all')">Todo</div>
-            <div class="filter-pill" id="ft-debit" onclick="setTypeFilter('debit')"><i class="fas fa-wallet"></i> Débito/Efectivo</div>
+            <div class="filter-pill" id="ft-debit" onclick="setTypeFilter('debit')"><i class="fas fa-wallet"></i> Efectivo</div>
             <div class="filter-pill" id="ft-credit" onclick="setTypeFilter('credit')"><i class="fas fa-credit-card"></i> Crédito</div>
+            <div class="filter-pill" id="ft-receivable" onclick="setTypeFilter('receivable')"><i class="fas fa-hand-holding-dollar"></i> Por Cobrar</div>
         </div>
 
         <div class="acc-list" id="accList">
@@ -270,9 +273,13 @@
                 <div class="tx-icon" style="background:rgba(16, 185, 129, 0.1); color:var(--success)"><i class="fas fa-receipt"></i></div>
                 <div><div class="font-bold">Registrar Movimiento</div><div class="text-xs text-muted">Gasto o Ingreso</div></div>
             </div>
+             <div class="menu-btn" onclick="closeModal('modalMenu'); openCollectModal()">
+                <div class="tx-icon" style="background:rgba(251, 191, 36, 0.1); color:var(--pending)"><i class="fas fa-hand-holding-dollar"></i></div>
+                <div><div class="font-bold">Registrar Cobro</div><div class="text-xs text-muted">Mover a Efectivo</div></div>
+            </div>
             <div class="menu-btn" onclick="closeModal('modalMenu'); openAccModal()">
                 <div class="tx-icon" style="background:rgba(99, 102, 241, 0.1); color:var(--primary)"><i class="fas fa-university"></i></div>
-                <div><div class="font-bold">Nueva Cuenta</div><div class="text-xs text-muted">Tarjeta o Efectivo</div></div>
+                <div><div class="font-bold">Nueva Cuenta</div><div class="text-xs text-muted">Tarjeta, Efectivo o Deuda</div></div>
             </div>
         </div>
         <button class="btn btn-text" onclick="closeModal('modalMenu')">Cancelar</button>
@@ -335,8 +342,17 @@
             <label>PIN de Hogar (Acuerden uno)</label>
             <input type="password" id="householdPin" maxlength="4" placeholder="0000" style="text-align:center; letter-spacing:5px">
         </div>
+
+        <hr style="border-color:rgba(255,255,255,0.1); margin:20px 0">
+
+        <label style="color:var(--info)"><i class="fas fa-database"></i> Backup (CSV)</label>
+        <div style="display:flex; gap:10px; margin-top:10px">
+            <button class="btn btn-success" onclick="exportData()" style="font-size:0.8rem"><i class="fas fa-download"></i> Descargar</button>
+            <label for="csvInput" class="btn btn-primary" style="font-size:0.8rem; cursor:pointer; margin:10px 0 0"><i class="fas fa-upload"></i> Subir</label>
+            <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importData()">
+        </div>
         
-        <button class="btn btn-primary" onclick="saveSettings()">Guardar & Vincular</button>
+        <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:20px">Guardar & Vincular</button>
         <button class="btn btn-danger" onclick="logout()" style="margin-top:20px">Cerrar Sesión</button>
         <button class="btn btn-text" onclick="closeModal('modalSettings')">Cerrar</button>
     </div>
@@ -349,7 +365,7 @@
             <input type="hidden" id="editAccId">
             <div class="input-group"><label>Nombre</label><input type="text" id="accName" required></div>
             <div class="row-2">
-                <div class="input-group"><label>Tipo</label><select id="accType" onchange="toggleFields()"><option value="debit">Efectivo/Débito</option><option value="credit">Crédito</option></select></div>
+                <div class="input-group"><label>Tipo</label><select id="accType" onchange="toggleFields()"><option value="debit">Efectivo/Débito</option><option value="credit">Crédito</option><option value="receivable">Por Cobrar</option></select></div>
                 <div class="input-group"><label>Orden (1, 2, 3...)</label><input type="number" id="accOrder" placeholder="Prioridad visual"></div>
             </div>
             <div class="row-2">
@@ -358,7 +374,7 @@
             </div>
             
             <div id="creditFields" class="hidden" style="background:rgba(239,68,68,0.1); padding:15px; border-radius:16px; margin-bottom:15px;">
-                <label style="color:var(--danger)">Datos de Crédito</label>
+                <label style="color:var(--danger)">Datos de Crédito (Bóveda)</label>
                 <div class="row-2">
                     <div class="input-group"><label>Límite</label><input type="number" id="accLimit" step="0.01"></div>
                     <div class="input-group"><label>Día Corte</label><input type="number" id="accCut"></div>
@@ -373,6 +389,23 @@
             <button class="btn btn-primary">Guardar</button>
             <button type="button" class="btn btn-danger hidden" id="btnDelAcc" onclick="delAcc()">Eliminar</button>
             <button type="button" class="btn btn-text" onclick="closeModal('modalAcc')">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="modalCollect">
+    <div class="sheet">
+        <h3 style="color:var(--pending)">Registrar Cobro</h3>
+        <p class="text-xs text-muted">Mueve dinero de "Por Cobrar" a "Efectivo".</p>
+        <form id="formCollect">
+            <div class="input-group"><label>Deudor (Origen)</label><select id="colFrom" required></select></div>
+            <div class="input-group"><label>Destino (Tu cuenta)</label><select id="colTo" required></select></div>
+            <div class="row-2">
+                <div class="input-group"><label>Monto</label><input type="number" id="colAmount" step="0.01" required></div>
+                <div class="input-group"><label>Fecha</label><input type="date" id="colDate" required></div>
+            </div>
+            <button class="btn btn-primary">Registrar</button>
+            <button type="button" class="btn btn-text" onclick="closeModal('modalCollect')">Cancelar</button>
         </form>
     </div>
 </div>
@@ -512,12 +545,25 @@
         // Cargar Cuentas
         db.collection('accounts').onSnapshot(snap => {
             state.accounts = [];
-            snap.forEach(doc => state.accounts.push({id: doc.id, ...doc.data()}));
+            snap.forEach(doc => {
+                const d = doc.data();
+                const vault = d.vault || {}; // Soporte Legacy para versiones viejas
+                
+                // Normalización de datos: Si no encuentra en raíz, busca en vault
+                state.accounts.push({
+                    id: doc.id, ...d,
+                    // Asegurar que leemos el campo correcto
+                    cut: d.cut || vault.cut || 0,
+                    payDay: d.payDay || vault.payDay || 0,
+                    min: d.min || vault.minPay || 0,
+                    noInt: d.noInt || vault.statementBal || 0,
+                    limit: d.limit || 0
+                });
+            });
             render();
             loading(false);
         });
         
-        // Cargar Proyecciones
         db.collection('planning').onSnapshot(snap => {
             state.planning = [];
             snap.forEach(doc => state.planning.push({id: doc.id, ...doc.data()}));
@@ -543,7 +589,7 @@
     // === 6. RENDERIZADO (CORE) ===
     function render() {
         const list = $('accList'); list.innerHTML = '';
-        let assets=0, debt=0;
+        let assets=0, debt=0, pending=0;
 
         // Filtrado
         const visibleAccs = state.accounts.filter(a => {
@@ -556,7 +602,8 @@
             // Filtro Tipo
             let typeOk = true;
             if(state.typeFilter === 'debit') typeOk = (a.type === 'debit');
-            if(state.typeFilter === 'credit') typeOk = (a.type === 'credit');
+            else if(state.typeFilter === 'credit') typeOk = (a.type === 'credit');
+            else if(state.typeFilter === 'receivable') typeOk = (a.type === 'receivable');
 
             return ownerOk && typeOk;
         });
@@ -565,27 +612,37 @@
         visibleAccs.sort((a,b) => (a.order || 99) - (b.order || 99));
 
         visibleAccs.forEach(a => {
-            const isCredit = a.type === 'credit';
-            if(isCredit) debt += parseFloat(a.balance); else assets += parseFloat(a.balance);
-            
+            // LOGICA CRÍTICA DE TOTALES
+            if(a.type === 'credit') debt += parseFloat(a.balance); 
+            else if(a.type === 'receivable') pending += parseFloat(a.balance); // POR COBRAR SE SUMA APARTE
+            else assets += parseFloat(a.balance); // SOLO DEBITO SUMA A LIQUIDEZ
+
             let extra = '';
-            if(isCredit) {
+            if(a.type === 'credit') {
                 const util = (a.balance / (a.limit || 1)) * 100;
                 extra = `<div style="height:4px; background:rgba(255,255,255,0.1); margin-top:10px; border-radius:2px; overflow:hidden">
                             <div style="width:${Math.min(util,100)}%; height:100%; background:${util>50 ? 'var(--warning)' : 'var(--success)'}"></div>
                          </div>
                          <div class="card-meta">
-                            <span>Corte: ${a.cut || '--'}</span>
-                            <span>Pagar: ${a.payDay || '--'}</span>
+                            <span>Min: ${fmt(a.min)}</span>
+                            <span>No Int: ${fmt(a.noInt)}</span>
+                         </div>`;
+            } else if (a.type === 'receivable') {
+                 extra = `<div class="card-meta" style="color:var(--pending)">
+                            <span><i class="fas fa-clock"></i> Pendiente</span>
                          </div>`;
             }
 
             const card = document.createElement('div');
             card.className = 'bank-card';
-            card.style.background = `linear-gradient(135deg, ${getBankColor(a.name)}, #10141d)`;
+            const color = a.type==='receivable' ? '#b45309' : getBankColor(a.name); // Color distinto para cobrar
+            card.style.background = `linear-gradient(135deg, ${color}, #10141d)`;
+            
+            const icon = a.type==='credit'?'fa-credit-card':(a.type==='receivable'?'fa-hand-holding-dollar':'fa-wallet');
+            
             card.innerHTML = `
                 <div>
-                    <div class="flex-between"><i class="fas ${isCredit?'fa-credit-card':'fa-wallet'}" style="opacity:0.6"></i> <small>${a.owner.toUpperCase()}</small></div>
+                    <div class="flex-between"><i class="fas ${icon}" style="opacity:0.6"></i> <small>${a.owner.toUpperCase()}</small></div>
                     <div class="font-bold" style="font-size:1.1rem; margin-top:10px">${a.name}</div>
                 </div>
                 <div>
@@ -597,9 +654,10 @@
             list.appendChild(card);
         });
 
-        $('netDisplay').innerText = fmt(assets - debt);
+        $('netDisplay').innerText = fmt(assets - debt); // Patrimonio real no incluye lo que no tienes (pending)
         $('assetDisplay').innerText = fmt(assets);
         $('debtDisplay').innerText = fmt(debt);
+        $('pendDisplay').innerText = fmt(pending);
         
         runBrainCheck(assets, debt);
     }
@@ -632,17 +690,15 @@
         const buffer = num('stratBuffer');
         state.buffer = buffer; localStorage.setItem('sf_buffer', buffer);
         
-        // Obtener cuentas visibles (si estoy en Joint, uso Joint)
         const activeAccs = state.accounts.filter(a => {
             if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint';
             if(state.unlocked) return true;
             return false;
         });
 
-        // 1. Calcular Liquidez Total
+        // SOLO DEBITO cuenta como liquidez. Por Cobrar NO.
         const liquidity = activeAccs.filter(a => a.type === 'debit').reduce((s,a) => s + parseFloat(a.balance), 0);
         
-        // 2. Detectar Pagos Mínimos Obligatorios (Deudas)
         const debts = activeAccs.filter(a => a.type === 'credit' && parseFloat(a.balance) > 0);
         let mandatoryPayment = 0;
         let stratHTML = '';
@@ -657,7 +713,6 @@
             }
         });
 
-        // 3. Calcular Remanente
         const available = liquidity - buffer - mandatoryPayment;
         $('stratLiquid').innerText = fmt(available);
 
@@ -667,9 +722,8 @@
                 <p class="text-xs">No cubres los mínimos ni el buffer.</p>
             </div>`;
         } else if (available > 0 && debts.length > 0) {
-            // Estrategia: Pagar al que tenga menor saldo para liberar cashflow (Snowball simple)
-            // O al que tenga deuda más alta. En este caso simple: Deuda más alta.
-            debts.sort((a,b) => parseFloat(b.balance) - parseFloat(a.balance)); // Ordenar por deuda mayor
+            // Buscar si hay pagos para no generar intereses que vencen pronto, o solo bajar deuda total
+            debts.sort((a,b) => parseFloat(b.balance) - parseFloat(a.balance)); 
             const target = debts[0];
             const payAmount = Math.min(available, parseFloat(target.balance));
             
@@ -709,11 +763,51 @@
         const id = val('editAccId');
         const data = {
             name: val('accName'), type: val('accType'), balance: num('accBalance'), owner: val('accOwner'), order: num('accOrder'),
+            // Guardamos todos los campos explicitamente
             limit: num('accLimit'), cut: val('accCut'), payDay: val('accPayDay'), min: num('accMin'), noInt: num('accNoInt')
         };
         if(id) await db.collection('accounts').doc(id).update(data);
         else await db.collection('accounts').add(data);
         closeModal('modalAcc');
+    };
+    
+    // --- Lógica de COBRO ---
+    window.openCollectModal = () => {
+        const f = $('colFrom'); f.innerHTML = '';
+        const t = $('colTo'); t.innerHTML = '';
+        state.accounts.filter(a => a.type === 'receivable').forEach(a => f.innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance)})</option>`);
+        state.accounts.filter(a => a.type === 'debit').forEach(a => t.innerHTML += `<option value="${a.id}">${a.name}</option>`);
+        
+        if(f.children.length === 0) return alert("No tienes cuentas por cobrar.");
+        if(t.children.length === 0) return alert("Necesitas una cuenta de efectivo.");
+        
+        $('colDate').valueAsDate = new Date();
+        openModal('modalCollect');
+    };
+
+    $('formCollect').onsubmit = async (e) => {
+        e.preventDefault();
+        loading(true);
+        const fromId = val('colFrom'); const toId = val('colTo'); const amt = num('colAmount');
+        const batch = db.batch();
+        
+        // Restar de Por Cobrar
+        const accFrom = state.accounts.find(a => a.id === fromId);
+        batch.update(db.collection('accounts').doc(fromId), { balance: parseFloat(accFrom.balance) - amt });
+        
+        // Sumar a Efectivo
+        const accTo = state.accounts.find(a => a.id === toId);
+        batch.update(db.collection('accounts').doc(toId), { balance: parseFloat(accTo.balance) + amt });
+        
+        // Registrar Transaccion
+        const ref = db.collection('transactions').doc();
+        batch.set(ref, {
+            amount: amt, date: val('colDate'), desc: `Cobro: ${accFrom.name}`, type: 'income', accId: toId, cat: 'income'
+        });
+        
+        await batch.commit();
+        loading(false);
+        closeModal('modalCollect');
     };
 
     $('formTx').onsubmit = async (e) => {
@@ -728,7 +822,6 @@
         const batch = db.batch();
         const txRef = val('editTxId') ? db.collection('transactions').doc(val('editTxId')) : db.collection('transactions').doc();
         
-        // Actualizar saldo solo si es nueva (simplificado para demo)
         if(!val('editTxId')) {
             if(mode === 'expense') updateBal(data.accId, -amt, batch);
             if(mode === 'income') updateBal(data.accId, amt, batch);
@@ -744,12 +837,49 @@
         const acc = state.accounts.find(a => a.id === id);
         if(!acc) return;
         let newBal = parseFloat(acc.balance);
-        if(acc.type === 'credit') newBal -= amount; // En credito, gasto aumenta deuda, ingreso (pago) disminuye
+        if(acc.type === 'credit') newBal -= amount; 
         else newBal += amount;
         batch.update(db.collection('accounts').doc(id), { balance: newBal });
     }
 
-    // === 9. CHART JS & PROYECCIONES ===
+    // === 9. BACKUP / RESTORE (Recuperado) ===
+    window.exportData = () => {
+        const rows = [["ID","Nombre","Tipo","Saldo","Dueño","Limite","Minimo","NoIntereses","Corte","Pago"]];
+        state.accounts.forEach(a => {
+            rows.push([a.id, a.name, a.type, a.balance, a.owner, a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0]);
+        });
+        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+        const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", "backup_finance.csv"); document.body.appendChild(link);
+        link.click();
+    };
+
+    window.importData = () => {
+        const input = $('csvInput');
+        if(!input.files.length) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const lines = e.target.result.split('\n');
+            const batch = db.batch();
+            for(let i=1; i<lines.length; i++) {
+                const cols = lines[i].split(',');
+                if(cols.length < 5) continue;
+                const data = {
+                    name: cols[1], type: cols[2], balance: parseFloat(cols[3]), owner: cols[4],
+                    limit: parseFloat(cols[5]||0), min: parseFloat(cols[6]||0), noInt: parseFloat(cols[7]||0),
+                    cut: cols[8]||0, payDay: cols[9]||0
+                };
+                if(cols[0] && cols[0].length > 5) batch.set(db.collection('accounts').doc(cols[0]), data, {merge:true});
+                else batch.set(db.collection('accounts').doc(), data);
+            }
+            await batch.commit();
+            alert("Datos importados.");
+            closeModal('modalSettings');
+        };
+        reader.readAsText(input.files[0]);
+    };
+
+    // === 10. HELPERS DE INTERFAZ ===
     let chartInstance = null;
     window.openChartModal = () => {
         openModal('modalChart');
@@ -783,18 +913,12 @@
             </div>`;
         });
     }
-    
-    $('formPlan').onsubmit = (e) => {
-        e.preventDefault();
-        db.collection('planning').add({ desc:val('planDesc'), amount:num('planAmount'), date:val('planDate') });
-        $('formPlan').reset();
-    };
+    $('formPlan').onsubmit = (e) => { e.preventDefault(); db.collection('planning').add({ desc:val('planDesc'), amount:num('planAmount'), date:val('planDate') }); $('formPlan').reset(); };
     window.delPlan = (id) => db.collection('planning').doc(id).delete();
 
-    // === 10. HELPERS DE INTERFAZ ===
     window.setTypeFilter = (t) => {
         state.typeFilter = t;
-        ['ft-all','ft-debit','ft-credit'].forEach(id => $(id).classList.remove('active'));
+        ['ft-all','ft-debit','ft-credit','ft-receivable'].forEach(id => $(id).classList.remove('active'));
         $(`ft-${t}`).classList.add('active');
         render();
     };
@@ -851,7 +975,6 @@
         $('divTrf').classList.toggle('hidden', m!=='transfer');
         $('divNormal').classList.toggle('hidden', m==='transfer');
         
-        // Llenar selects
         const fill = (id) => {
             $(id).innerHTML = '';
             state.accounts.forEach(a => $(id).innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance)})</option>`);
