@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Titanium v1.2</title>
+    <title>SmartFinance | Titanium v2.0</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v1.2 === */
+        /* === TITANIUM DESIGN SYSTEM v2.0 === */
         :root { 
             --bg: #0b0f19; 
             --card-bg: #151b2b; 
@@ -51,6 +51,14 @@
         #loading-overlay.active { opacity: 1; pointer-events: all; }
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(99, 102, 241, 0.3); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         
+        /* Toast Notifications */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { background: var(--card-bg); color: white; padding: 16px 20px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; transform: translateY(-20px); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(255,255,255,0.1); pointer-events: all; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.info { border-left: 4px solid var(--info); }
+
         /* Login Screen */
         #auth-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; background: radial-gradient(circle at top right, #1e1b4b, var(--bg)); }
         
@@ -98,10 +106,13 @@
         
         .card-data-row { display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 5px; padding-top: 5px; border-top: 1px dashed rgba(255,255,255,0.1); color: var(--text-muted); }
 
-        /* Centinela Alerts */
+        /* Centinela Alerts & Badges */
         .sentinel-alert { position: absolute; top: 0; right: 0; font-size: 0.65rem; padding: 4px 10px; border-bottom-left-radius: 16px; font-weight: 700; letter-spacing: 0.5px; }
         .sentinel-alert.danger { background: var(--danger); color: white; }
         .sentinel-alert.warning { background: var(--warning); color: #000; }
+        
+        .owner-badge { position: absolute; top: 15px; right: 15px; font-size: 0.65rem; padding: 3px 8px; border-radius: 10px; font-weight: 700; background: rgba(0,0,0,0.4); text-transform: uppercase; }
+        .owner-badge.joint { background: var(--accent); color: white; }
 
         /* Lista de Transacciones */
         .section-title { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
@@ -115,6 +126,7 @@
         .modal.open { display: flex; opacity: 1; }
         .sheet { background: #1a202e; width: 100%; max-width: 550px; border-radius: 32px 32px 0 0; padding: 30px; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
         .modal.open .sheet { transform: translateY(0); }
+        .sheet::-webkit-scrollbar { display: none; }
 
         /* Formularios */
         .input-group { margin-bottom: 20px; }
@@ -123,6 +135,12 @@
         input:focus, select:focus { border-color: var(--primary); background: #232b3a; }
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
+        /* Strat Card */
+        .strat-card { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.2s; }
+        .strat-card:active { background: rgba(255,255,255,0.08); }
+        .strat-card.urgent { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); }
+        .strat-card.ok { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: var(--success); text-align: center; }
+
         /* Botones */
         .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 10px; transition: transform 0.1s, opacity 0.2s; font-family: inherit; }
         .btn:active { transform: scale(0.98); }
@@ -141,6 +159,7 @@
 </head>
 <body>
 
+<div id="toast-container"></div>
 <div id="loading-overlay"><div class="spinner"></div><div style="margin-top:20px; font-weight:600; letter-spacing:1px; font-size:0.9rem">CARGANDO DATOS...</div></div>
 
 <div id="auth-screen">
@@ -148,7 +167,7 @@
         <i class="fas fa-layer-group" style="font-size: 2.5rem; color: white;"></i>
     </div>
     <h1 style="margin:0; font-weight:800; letter-spacing:-1px; font-size:2.5rem">SmartFinance</h1>
-    <p style="color:var(--text-muted); margin-bottom:50px; font-weight:300; letter-spacing:1px">Titanium v1.2</p>
+    <p style="color:var(--text-muted); margin-bottom:50px; font-weight:300; letter-spacing:1px">Titanium v2.0</p>
     <button class="btn btn-primary" style="max-width:300px; display:flex; align-items:center; justify-content:center; gap:12px" onclick="login()">
         <i class="fab fa-google"></i> Continuar con Google
     </button>
@@ -291,6 +310,7 @@
                 <button type="button" class="btn btn-danger hidden" id="btnDelTx" onclick="delTx()"><i class="fas fa-trash"></i></button>
                 <button class="btn btn-primary" style="grid-column: span 2" id="btnSaveTx">Guardar</button>
             </div>
+            <p id="txEditWarning" class="text-xs text-muted hidden" style="text-align:center; margin-top:10px">⚠️ Editar un movimiento NO ajusta el saldo de la cuenta. Ajusta el saldo manualmente si es necesario.</p>
             <button type="button" class="btn btn-text" onclick="closeModal('modalTx')">Cancelar</button>
         </form>
     </div>
@@ -431,18 +451,37 @@
     };
 
     // ==========================================
-    // 2. UTILIDADES DOM (DECIMALES MEJORADOS)
+    // 2. UTILIDADES DOM MEJORADAS
     // ==========================================
     const $ = (i) => document.getElementById(i);
     const val = (i) => $(i).value;
-    // FIX DECIMALES: parseFloat es más seguro que Number() para inputs de texto en algunos navegadores
+    
+    // Convierte input a float seguro
     const num = (i) => {
         const v = $(i).value;
-        return v === '' ? 0 : parseFloat(v);
+        return (v === '' || isNaN(v)) ? 0 : parseFloat(parseFloat(v).toFixed(2));
     };
+    
+    // Formato moneda MXN
     const fmt = (n) => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n||0);
+    
+    // Loading Spinner
     const loading = (a) => $('loading-overlay').classList.toggle('active', a);
     
+    // Toast Notification System
+    const showToast = (msg, type = 'info') => {
+        const c = $('toast-container');
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle')}"></i> <span>${msg}</span>`;
+        c.appendChild(t);
+        requestAnimationFrame(() => t.classList.add('show'));
+        setTimeout(() => {
+            t.classList.remove('show');
+            setTimeout(() => t.remove(), 300);
+        }, 3000);
+    };
+
     // Modales
     const openModal = (i) => { $(i).classList.add('open'); };
     const closeModal = (i) => { $(i).classList.remove('open'); };
@@ -476,7 +515,7 @@
         }
     });
 
-    window.login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert("Error Auth: "+e.message));
+    window.login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>showToast("Error Auth: "+e.message, 'error'));
     window.logout = () => auth.signOut();
 
     // ==========================================
@@ -490,7 +529,7 @@
                 const da = d.data();
                 state.accounts.push({
                     id: d.id, ...da,
-                    // FIX DECIMALES: Asegurar que leemos como float
+                    // Asegurar floats
                     balance: parseFloat(da.balance)||0, limit: parseFloat(da.limit)||0,
                     apr: parseFloat(da.apr)||0, cut: parseInt(da.cut)||0, payDay: parseInt(da.payDay)||0,
                     noInt: parseFloat(da.noInt)||0, min: parseFloat(da.min)||0,
@@ -498,6 +537,9 @@
                 });
             });
             renderAccounts();
+            loading(false);
+        }, error => {
+            console.error(error);
             loading(false);
         });
         
@@ -531,7 +573,7 @@
             return ownerMatch && typeMatch;
         });
 
-        // Totales Globales (Respetando filtro de usuario)
+        // Totales Globales
         state.accounts.forEach(a => {
             let isVisibleUser = false;
             if(state.filter === 'me') isVisibleUser = (a.owner === 'me' || a.owner === 'joint');
@@ -565,6 +607,11 @@
             
             let extra = '';
             let sentinelBadge = '';
+            let ownerBadge = '';
+
+            // Badge de Dueño (solo si es mancomunado o viendo todo)
+            if(a.owner === 'joint') ownerBadge = `<div class="owner-badge joint">COMPARTIDA</div>`;
+            else if(state.filter === 'all') ownerBadge = `<div class="owner-badge">${a.owner === 'me' ? state.settings.me : state.settings.partner}</div>`;
 
             if(a.type==='credit') {
                 if(a.limit > 0) {
@@ -594,10 +641,10 @@
 
             card.innerHTML = `
                 ${sentinelBadge}
+                ${ownerBadge}
                 <div>
                     <div class="flex-between">
                         <i class="fas ${icon}" style="opacity:0.5"></i>
-                        <span style="font-size:0.65rem;background:rgba(0,0,0,0.4);padding:4px 8px;border-radius:10px;font-weight:700">${a.owner.toUpperCase()}</span>
                     </div>
                     <div class="font-bold" style="margin-top:12px; font-size:1.1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${a.name}</div>
                 </div>
@@ -740,7 +787,7 @@
     }
 
     // ==========================================
-    // 8. CRUD (FIXED DECIMALES EN SAVE)
+    // 8. CRUD
     // ==========================================
     $('formAcc').onsubmit = async (e) => {
         e.preventDefault(); loading(true);
@@ -750,62 +797,82 @@
             card: val('accCard'), clabe: val('accClabe')
         };
         const id = val('editAccId');
-        if(id) await db.collection('accounts').doc(id).update(d); else await db.collection('accounts').add(d);
-        closeModal('modalAcc'); loading(false);
+        try {
+            if(id) { await db.collection('accounts').doc(id).update(d); showToast('Cuenta actualizada', 'success'); }
+            else { await db.collection('accounts').add(d); showToast('Cuenta creada', 'success'); }
+            closeModal('modalAcc');
+        } catch(err) { showToast(err.message, 'error'); }
+        loading(false);
     };
 
     $('btnSaveTx').onclick = async () => {
         const form = $('formTx'); if(!form.checkValidity()) { form.reportValidity(); return; }
         loading(true); const id = val('editTxId');
-        // FIX DECIMALES: Asegurar que num() devuelva float
         const d = { amount: num('txAmount'), desc: val('txDesc'), date: val('txDate'), type: val('txMode'), cat: val('txCat'), accId: val('txAccount')||null, fromId: val('payFrom')||null, toId: val('payTo')||null };
-        const batch = db.batch(); const ref = id ? db.collection('transactions').doc(id) : db.collection('transactions').doc();
         
-        if(!id) { 
-            if(d.type==='expense'){ 
-                const a=state.accounts.find(x=>x.id===d.accId); 
-                let nb=a.balance; 
-                // Lógica de tarjetas: Gasto aumenta la deuda (balance positivo)
-                if(a.type==='credit') nb = (parseFloat(nb) + parseFloat(d.amount));
-                else nb = (parseFloat(nb) - parseFloat(d.amount)); 
-                batch.update(db.collection('accounts').doc(a.id),{balance:nb}); 
-            } 
-            else if(d.type==='income'){ 
-                const a=state.accounts.find(x=>x.id===d.accId); 
-                let nb=a.balance; 
-                // Lógica tarjetas: Ingreso (pago) reduce la deuda
-                if(a.type==='credit') nb = (parseFloat(nb) - parseFloat(d.amount));
-                else nb = (parseFloat(nb) + parseFloat(d.amount)); 
-                batch.update(db.collection('accounts').doc(a.id),{balance:nb}); 
-            } 
-            else if(d.type==='payment'){ 
-                const f=state.accounts.find(x=>x.id===d.fromId); 
-                const t=state.accounts.find(x=>x.id===d.toId); 
-                batch.update(db.collection('accounts').doc(f.id),{balance: parseFloat(f.balance)-parseFloat(d.amount)}); 
-                let tb=t.balance; 
-                if(t.type==='credit') tb = (parseFloat(tb) - parseFloat(d.amount));
-                else tb = (parseFloat(tb) + parseFloat(d.amount)); 
-                batch.update(db.collection('accounts').doc(t.id),{balance:tb}); 
+        try {
+            const batch = db.batch(); const ref = id ? db.collection('transactions').doc(id) : db.collection('transactions').doc();
+            
+            // SOLO actualizamos balance si es NUEVO. Si es EDITAR, no tocamos balances para evitar desyncs complejos
+            if(!id) { 
+                if(d.type==='expense'){ 
+                    const a=state.accounts.find(x=>x.id===d.accId); 
+                    if(a) {
+                        let nb=a.balance; 
+                        if(a.type==='credit') nb = (parseFloat(nb) + parseFloat(d.amount));
+                        else nb = (parseFloat(nb) - parseFloat(d.amount)); 
+                        batch.update(db.collection('accounts').doc(a.id),{balance:nb});
+                    }
+                } 
+                else if(d.type==='income'){ 
+                    const a=state.accounts.find(x=>x.id===d.accId); 
+                    if(a) {
+                        let nb=a.balance; 
+                        if(a.type==='credit') nb = (parseFloat(nb) - parseFloat(d.amount));
+                        else nb = (parseFloat(nb) + parseFloat(d.amount)); 
+                        batch.update(db.collection('accounts').doc(a.id),{balance:nb}); 
+                    }
+                } 
+                else if(d.type==='payment'){ 
+                    const f=state.accounts.find(x=>x.id===d.fromId); 
+                    const t=state.accounts.find(x=>x.id===d.toId); 
+                    if(f && t) {
+                        batch.update(db.collection('accounts').doc(f.id),{balance: parseFloat(f.balance)-parseFloat(d.amount)}); 
+                        let tb=t.balance; 
+                        if(t.type==='credit') tb = (parseFloat(tb) - parseFloat(d.amount));
+                        else tb = (parseFloat(tb) + parseFloat(d.amount)); 
+                        batch.update(db.collection('accounts').doc(t.id),{balance:tb}); 
+                    }
+                }
             }
-        }
-        batch.set(ref,d); await batch.commit(); loading(false); closeModal('modalTx');
+            batch.set(ref,d); await batch.commit(); 
+            showToast(id ? 'Movimiento actualizado' : 'Movimiento guardado', 'success');
+            closeModal('modalTx');
+        } catch(err) { showToast(err.message, 'error'); }
+        loading(false); 
     };
 
     window.openCollectModal = () => {
         const fs=$('colFrom'); fs.innerHTML=''; const ts=$('colTo'); ts.innerHTML='';
         state.accounts.filter(a=>a.type==='receivable').forEach(a=>fs.innerHTML+=`<option value="${a.id}">${a.name}</option>`);
         state.accounts.filter(a=>a.type==='debit').forEach(a=>ts.innerHTML+=`<option value="${a.id}">${a.name}</option>`);
-        if(fs.children.length===0) return alert("Crea una cuenta 'Por Cobrar'");
-        if(ts.children.length===0) return alert("Necesitas una cuenta de Débito");
+        if(fs.children.length===0) return showToast("Crea una cuenta 'Por Cobrar'", 'error');
+        if(ts.children.length===0) return showToast("Necesitas una cuenta de Débito", 'error');
         $('colDate').valueAsDate = new Date(); openModal('modalCollect');
     };
     $('formCollect').onsubmit = async (e) => {
         e.preventDefault(); loading(true); const amt=num('colAmount'); const f=val('colFrom'); const t=val('colTo');
-        const batch = db.batch(); const fa = state.accounts.find(a=>a.id===f); batch.update(db.collection('accounts').doc(f),{balance:fa.balance-amt});
-        const ta = state.accounts.find(a=>a.id===t); batch.update(db.collection('accounts').doc(t),{balance:ta.balance+amt});
-        const r = db.collection('transactions').doc();
-        batch.set(r, {amount:amt, date:val('colDate'), desc:`Cobro: ${fa.name}`, type:'transfer', fromId:f, toId:t, cat:'income'});
-        await batch.commit(); loading(false); closeModal('modalCollect');
+        try {
+            const batch = db.batch(); 
+            const fa = state.accounts.find(a=>a.id===f); batch.update(db.collection('accounts').doc(f),{balance:fa.balance-amt});
+            const ta = state.accounts.find(a=>a.id===t); batch.update(db.collection('accounts').doc(t),{balance:ta.balance+amt});
+            const r = db.collection('transactions').doc();
+            batch.set(r, {amount:amt, date:val('colDate'), desc:`Cobro: ${fa.name}`, type:'transfer', fromId:f, toId:t, cat:'income'});
+            await batch.commit(); 
+            showToast('Cobro registrado exitosamente', 'success');
+            closeModal('modalCollect');
+        } catch(err) { showToast(err.message, 'error'); }
+        loading(false); 
     };
 
     // Planning
@@ -818,18 +885,38 @@
             l.appendChild(div);
         });
     }
-    $('formPlan').onsubmit = async (e) => { e.preventDefault(); await db.collection('planning').add({desc:val('planDesc'), amount:num('planAmount'), date:val('planDate')}); $('formPlan').reset(); };
+    $('formPlan').onsubmit = async (e) => { e.preventDefault(); await db.collection('planning').add({desc:val('planDesc'), amount:num('planAmount'), date:val('planDate')}); $('formPlan').reset(); showToast('Ingreso planificado','success'); };
     window.delPlan = (id) => { if(confirm('¿Borrar?')) db.collection('planning').doc(id).delete(); };
 
     // ==========================================
-    // 9. UI HELPERS (FIXED OPEN EDIT ACC)
+    // 9. UI HELPERS
     // ==========================================
-    window.openTxModal = () => { $('editTxId').value=''; $('btnDelTx').classList.add('hidden'); $('txDate').valueAsDate=new Date(); $('txDesc').value=''; $('txAmount').value=''; setTxMode('expense'); openModal('modalTx'); };
-    window.openEditTx = (t) => { $('editTxId').value=t.id; $('btnDelTx').classList.remove('hidden'); $('txAmount').value=t.amount; $('txDesc').value=t.desc; $('txDate').value=t.date; $('txCat').value=t.cat; setTxMode(t.type==='transfer'?'payment':t.type); if(t.type==='transfer'){$('payFrom').value=t.fromId;$('payTo').value=t.toId}else{$('txAccount').value=t.accId}; openModal('modalTx'); };
+    window.openTxModal = () => { 
+        $('editTxId').value=''; 
+        $('btnDelTx').classList.add('hidden'); 
+        $('txEditWarning').classList.add('hidden');
+        $('txDate').valueAsDate=new Date(); // Setea fecha local correctamente
+        $('txDesc').value=''; 
+        $('txAmount').value=''; 
+        setTxMode('expense'); 
+        openModal('modalTx'); 
+    };
+    
+    window.openEditTx = (t) => { 
+        $('editTxId').value=t.id; 
+        $('btnDelTx').classList.remove('hidden'); 
+        $('txEditWarning').classList.remove('hidden'); // Advertencia de no-balance update
+        $('txAmount').value=t.amount; 
+        $('txDesc').value=t.desc; 
+        $('txDate').value=t.date; 
+        $('txCat').value=t.cat; 
+        setTxMode(t.type==='transfer'?'payment':t.type); 
+        if(t.type==='transfer'){$('payFrom').value=t.fromId;$('payTo').value=t.toId}else{$('txAccount').value=t.accId}; 
+        openModal('modalTx'); 
+    };
     
     window.openAccModal = () => { $('formAcc').reset(); $('editAccId').value=''; $('btnDelAcc').classList.add('hidden'); toggleFields(); openModal('modalAcc'); };
     
-    // FIX CRÍTICO: Asegurar que llenamos todos los campos o los limpiamos si no existen
     window.openEditAcc = (a) => { 
         $('editAccId').value=a.id; 
         $('btnDelAcc').classList.remove('hidden'); 
@@ -843,7 +930,6 @@
         $('accNoInt').value = a.noInt || ''; 
         $('accMin').value = a.min || ''; 
         $('accApr').value = a.apr || ''; 
-        // Llenar explícitamente Card y Clabe
         $('accCard').value = a.card || ''; 
         $('accClabe').value = a.clabe || ''; 
         toggleFields(); 
@@ -863,14 +949,14 @@
     };
     
     window.toggleFields = () => { const t=val('accType'); $('fieldsCredit').classList.toggle('hidden', t!=='credit'); };
-    window.delAcc = async () => { if(confirm("¿Borrar?")) { await db.collection('accounts').doc(val('editAccId')).delete(); closeModal('modalAcc'); }};
-    window.delTx = async () => { if(confirm("¿Borrar?")) { await db.collection('transactions').doc(val('editTxId')).delete(); closeModal('modalTx'); }};
+    window.delAcc = async () => { if(confirm("¿Borrar cuenta?")) { await db.collection('accounts').doc(val('editAccId')).delete(); closeModal('modalAcc'); showToast('Cuenta eliminada', 'success'); }};
+    window.delTx = async () => { if(confirm("¿Borrar movimiento?")) { await db.collection('transactions').doc(val('editTxId')).delete(); closeModal('modalTx'); showToast('Movimiento eliminado', 'success'); }};
 
     window.togglePrivacy = () => { state.privacy = !state.privacy; $('privacy-label').innerText = state.privacy ? "Oculto" : "Visible"; $('privacy-toggle').classList.toggle('active', state.privacy); renderAccounts(); loadTransactions(); };
     window.unlockSync = (target) => { if(state.syncUnlocked) setFilter(target); else { window.pendingFilter = target; openModal('modalLock'); } };
-    window.checkPin = () => { if(val('unlockPin') === state.settings.pin) { state.syncUnlocked = true; closeModal('modalLock'); setFilter(window.pendingFilter); $('tabPartner').classList.remove('locked'); $('tabAll').classList.remove('locked'); } else { alert("PIN Incorrecto"); $('unlockPin').value = ''; } };
+    window.checkPin = () => { if(val('unlockPin') === state.settings.pin) { state.syncUnlocked = true; closeModal('modalLock'); setFilter(window.pendingFilter); $('tabPartner').classList.remove('locked'); $('tabAll').classList.remove('locked'); showToast('Acceso desbloqueado', 'success'); } else { showToast('PIN Incorrecto', 'error'); $('unlockPin').value = ''; } };
     window.setFilter = (f) => { state.filter = f; ['tabMe','tabPartner','tabAll'].forEach(t => $(t).className = 'tab-btn'); if(f==='me') $('tabMe').classList.add('active'); if(f==='partner') { $('tabPartner').classList.add('active'); $('tabPartner').classList.remove('locked'); } if(f==='all') { $('tabAll').classList.add('active'); $('tabAll').classList.remove('locked'); } renderAccounts(); loadTransactions(); };
-    window.saveSettings = () => { state.settings.me=val('confMe'); state.settings.partner=val('confPartner'); state.settings.pin=val('confPin'); localStorage.setItem('sf_conf', JSON.stringify(state.settings)); updateLabels(); closeModal('modalSettings'); };
+    window.saveSettings = () => { state.settings.me=val('confMe'); state.settings.partner=val('confPartner'); state.settings.pin=val('confPin'); localStorage.setItem('sf_conf', JSON.stringify(state.settings)); updateLabels(); closeModal('modalSettings'); showToast('Ajustes guardados', 'success'); };
     window.updateLabels = () => { $('tabMe').innerText=state.settings.me; $('tabPartner').innerText=state.settings.partner; const s=$('accOwner'); if(s){s.options[0].text=state.settings.me; s.options[1].text=state.settings.partner;} $('uName').innerText = state.user ? (state.user.displayName || 'Usuario') : 'Usuario'; };
     window.getBankColor = (n) => { n=n.toLowerCase(); if(n.includes('bbva'))return '#004481'; if(n.includes('nu'))return '#820ad1'; if(n.includes('santander'))return '#ec0000'; if(n.includes('amex'))return '#006fcf'; if(n.includes('banamex'))return '#003865'; if(n.includes('hsbc'))return '#db0011'; return '#1e293b'; };
     window.getCatIcon = (c) => { const map = { food:'🍔', transport:'⛽', home:'🏠', fun:'🍿', shopping:'🛍️', health:'💊', services:'💡', debt:'💸', income:'💰', other:'📦' }; return map[c] || '📄'; };
