@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SmartFinance | Titanium v5.3</title>
+    <title>SmartFinance | Titanium AI v5.4</title>
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,7 +21,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v5.3 === */
+        /* === TITANIUM DESIGN SYSTEM v5.4 === */
         :root { 
             --bg: #000000; 
             --app-bg: #0b0f19;
@@ -80,8 +80,7 @@
         .tab-btn.locked { opacity: 0.5; }
         .tab-btn.locked::after { content: '\f023'; font-family: "Font Awesome 6 Free"; position: absolute; right: 12px; top: 12px; font-size: 0.7rem; }
 
-        .widget { border-radius: var(--radius); margin-bottom: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: var(--shadow); background: var(--card-bg); }
-        
+        .widget { border-radius: var(--radius); margin-bottom: 20px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.7); background: var(--card-bg); }
         .brain-widget { background: linear-gradient(135deg, #4f46e5, #312e81); border:none; }
         .brain-content { padding: 24px; position: relative; z-index: 2; }
         .brain-actions { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(255,255,255,0.1); position: relative; z-index: 2; }
@@ -91,7 +90,6 @@
 
         .summary-card { padding: 24px; }
         .net-val { font-size: 2.8rem; font-weight: 800; margin: 10px 0; letter-spacing: -1.5px; line-height: 1; }
-        
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
         .stat-item span:first-child { display: block; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
         .stat-item span:last-child { font-size: 1rem; font-weight: 700; }
@@ -102,7 +100,6 @@
 
         .acc-list { display: flex; overflow-x: auto; gap: 16px; padding: 0 5px 20px; width: 100%; scroll-behavior: smooth; }
         .acc-list::-webkit-scrollbar { display: none; }
-        
         .sortable-ghost { opacity: 0.4; transform: scale(0.95); }
         .sortable-drag { cursor: grabbing; }
 
@@ -160,6 +157,7 @@
         .strat-card.pay { border-color: var(--primary); }
         .strat-card.min { border-color: var(--warning); }
         .strat-card.ok { border-color: var(--success); }
+        .strat-card.sniper { border-color: var(--accent); background: rgba(139, 92, 246, 0.1); }
 
         .menu-grid { display: grid; gap: 10px; }
         .menu-btn { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
@@ -178,7 +176,7 @@
             <i class="fas fa-chart-line" style="font-size: 2.5rem; color: white;"></i>
         </div>
         <h1 style="margin:0; font-weight:800; font-size:2.5rem">SmartFinance</h1>
-        <p style="color:var(--text-muted); margin-bottom:50px;">Titanium v5.3</p>
+        <p style="color:var(--text-muted); margin-bottom:50px;">Titanium v5.4 AI</p>
         
         <div id="bio-btn" class="hidden" style="margin-bottom:20px; cursor:pointer" onclick="loginBiometric()">
             <div class="biometric-scan" id="bio-scan" style="display:block; margin:0 auto 10px"></div>
@@ -295,12 +293,12 @@
 
 <div class="modal" id="modalStrategy">
     <div class="sheet">
-        <h3 style="margin-top:0"><i class="fas fa-chess"></i> Análisis de Solvencia</h3>
-        <p class="text-sm text-muted">Informe ejecutivo para optimización de flujo.</p>
+        <h3 style="margin-top:0"><i class="fas fa-chess"></i> Estrategia Inteligente</h3>
+        <p class="text-sm text-muted">Optimización automática basada en interés y liquidez.</p>
         <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:16px; margin-bottom:20px;">
             <div class="row-2">
-                <div><label>Liquidez Operativa</label><div id="stratLiquid" class="font-bold text-success">$0.00</div></div>
-                <div><label>Fondo de Maniobra</label><input type="number" id="stratBuffer" value="0" onchange="runStrategy()" style="padding:5px; height:30px;"></div>
+                <div><label>Liquidez Disponible</label><div id="stratLiquid" class="font-bold text-success">$0.00</div></div>
+                <div><label>Fondo Reserva</label><input type="number" id="stratBuffer" value="0" onchange="runStrategy()" style="padding:5px; height:30px;"></div>
             </div>
         </div>
         <div id="strategyOutput" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px"></div>
@@ -391,9 +389,12 @@
                 </div>
                 <div class="row-2">
                     <div class="input-group"><label>Mínimo</label><input type="number" id="accMin" step="0.01"></div>
-                    <div class="input-group"><label>No Intereses</label><input type="number" id="accNoInt" step="0.01"></div>
+                    <div class="input-group"><label>% Interés Anual (APR)</label><input type="number" id="accApr" step="0.01" placeholder="Ej: 60"></div>
                 </div>
-                <div class="input-group"><label>Límite Pago</label><input type="number" id="accPayDay"></div>
+                <div class="row-2">
+                    <div class="input-group"><label>Pago No Int.</label><input type="number" id="accNoInt" step="0.01"></div>
+                    <div class="input-group"><label>Límite Pago</label><input type="number" id="accPayDay"></div>
+                </div>
             </div>
 
             <button class="btn btn-primary">Guardar</button>
@@ -494,14 +495,13 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Estado Default
     const defaultSettings = { pin:'0000', partnerId: '', me:'Yo', partner:'Pareja' };
     const savedSettings = JSON.parse(localStorage.getItem('sf_opts')) || {};
     
     const state = {
         user: null, accounts: [], txs: [], planning: [],
         filter: 'me', typeFilter: 'all', privacy: true, unlocked: false,
-        settings: { ...defaultSettings, ...savedSettings }, // Merge seguro
+        settings: { ...defaultSettings, ...savedSettings }, 
         rates: JSON.parse(localStorage.getItem('sf_rates')) || { 'MXN': 1, 'USD': 20.50, 'EUR': 22.10 },
         buffer: parseFloat(localStorage.getItem('sf_buffer')) || 0
     };
@@ -530,7 +530,6 @@
     };
     window.scrollAcc = (dir) => { const l=$('accList'); if(l) l.scrollLeft += (dir * 300); };
 
-    // Notification Logic
     function checkNotifications() {
         if (!("Notification" in window)) return;
         if (Notification.permission === "granted") runDeadlineCheck();
@@ -546,7 +545,6 @@
         });
     }
 
-    // Init
     document.addEventListener('DOMContentLoaded', () => {
         auth.onAuthStateChanged(u => {
             if(u) {
@@ -611,7 +609,8 @@
             state.accounts = [];
             snap.forEach(doc => {
                 const d = doc.data();
-                state.accounts.push({ id: doc.id, ...d, currency: d.currency || 'MXN', owner: d.owner || 'me' });
+                // Ensure APR field read
+                state.accounts.push({ id: doc.id, ...d, currency: d.currency || 'MXN', owner: d.owner || 'me', apr: d.apr || 0 });
             });
             render();
             loading(false);
@@ -679,7 +678,6 @@
                  extra = `<div class="card-meta" style="color:var(--pending)"><span><i class="fas fa-clock"></i> Pendiente de cobro</span></div>`;
             }
             
-            // PROTECCION CONTRA UNDEFINED EN SOBRENOMBRES
             const meName = state.settings.me || 'Yo';
             const partName = state.settings.partner || 'Pareja';
             let ownerLabel = a.owner === 'me' ? meName : (a.owner === 'partner' ? partName : 'Compartido');
@@ -715,34 +713,69 @@
         });
     }
 
+    // === SMART STRATEGY CORE ===
     window.runStrategy = () => {
         const buffer = num('stratBuffer'); state.buffer = buffer; localStorage.setItem('sf_buffer', buffer);
         const activeAccs = state.accounts.filter(a => { if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint'; if(state.unlocked) return true; return false; });
         const liquidity = activeAccs.filter(a => a.type === 'debit').reduce((s,a) => s + toMXN(parseFloat(a.balance), a.currency), 0);
         const debts = activeAccs.filter(a => a.type === 'credit' && parseFloat(a.balance) > 0);
-        let mandatoryPayment = 0; let stratHTML = '';
+        
+        let mandatoryPayment = 0; 
+        let stratHTML = '';
+        const currentMonth = new Date().toISOString().slice(0, 7);
 
+        // 1. Check Minimums & Payments Made
         debts.forEach(d => {
             const min = parseFloat(d.min || 0);
             if(min > 0) {
-                const minMXN = toMXN(min, d.currency); mandatoryPayment += minMXN;
-                stratHTML += `<div class="strat-card min" onclick="execStrat('${d.id}', '${d.name}', ${min})"><div class="flex-between"><strong>⚠️ Obligación: ${d.name}</strong><span>${fmt(min, d.currency)}</span></div><p class="text-xs text-muted">Pago mínimo requerido.</p></div>`;
+                // Find payments to this card in current month (Transfer/Income to account)
+                const paymentsMade = state.txs
+                    .filter(t => t.date.startsWith(currentMonth) && (t.accId === d.id || t.toId === d.id) && (t.type === 'income' || t.type === 'transfer'))
+                    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+                
+                // Only ask for remaining
+                const remainingMin = Math.max(0, min - paymentsMade);
+                
+                if(remainingMin > 0) {
+                    const minMXN = toMXN(remainingMin, d.currency); 
+                    mandatoryPayment += minMXN;
+                    stratHTML += `<div class="strat-card min" onclick="execStrat('${d.id}', '${d.name}', ${remainingMin})"><div class="flex-between"><strong>⚠️ Pagar Mínimo: ${d.name}</strong><span>${fmt(remainingMin, d.currency)}</span></div><p class="text-xs text-muted">Resta por cubrir (Pagado: ${fmt(paymentsMade, d.currency)})</p></div>`;
+                }
             }
         });
 
         const available = liquidity - buffer - mandatoryPayment;
         setText('stratLiquid', fmt(available));
 
+        // 2. Strategy Logic: Snowball vs Avalanche
         if(available < 0) {
             stratHTML += `<div class="strat-card" style="border-color:var(--danger); background:rgba(239,68,68,0.1)"><strong>🚨 DÉFICIT DE CAJA</strong><p class="text-xs">Liquidez insuficiente para mínimos.</p></div>`;
         } else if (available > 0 && debts.length > 0) {
-            debts.sort((a,b) => toMXN(parseFloat(b.balance), b.currency) - toMXN(parseFloat(a.balance), a.currency));
-            const target = debts[0];
-            const payAmount = Math.min(available, toMXN(parseFloat(target.balance), target.currency));
-            stratHTML += `<div class="strat-card pay" onclick="execStrat('${target.id}', '${target.name}', ${payAmount})"><div class="flex-between"><strong>📈 Desapalancar: ${target.name}</strong><span>${fmt(payAmount)} (Aprox)</span></div><p class="text-xs text-muted">Reducción de deuda prioritaria.</p></div>`;
+            // Sort by APR desc (Avalanche default)
+            debts.sort((a,b) => (b.apr || 0) - (a.apr || 0));
+            
+            // Check for Sniper (Snowball) opportunity: Can I clear a small debt completely?
+            const sniperTarget = debts.find(d => {
+                const balMXN = toMXN(parseFloat(d.balance), d.currency);
+                return balMXN <= available;
+            });
+
+            if (sniperTarget) {
+                 const payAmount = parseFloat(sniperTarget.balance);
+                 stratHTML += `<div class="strat-card sniper" onclick="execStrat('${sniperTarget.id}', '${sniperTarget.name}', ${payAmount})"><div class="flex-between"><strong>🎯 Oportunidad Sniper: ${sniperTarget.name}</strong><span>${fmt(payAmount, sniperTarget.currency)}</span></div><p class="text-xs text-muted">Liquida esta deuda totalmente hoy.</p></div>`;
+            } else {
+                // Default Avalanche: Pay highest APR
+                const target = debts[0];
+                const targetBalMXN = toMXN(parseFloat(target.balance), target.currency);
+                const payAmountMXN = Math.min(available, targetBalMXN);
+                const payAmount = payAmountMXN; // Simplified currency handling for MVP
+                
+                stratHTML += `<div class="strat-card pay" onclick="execStrat('${target.id}', '${target.name}', ${payAmount})"><div class="flex-between"><strong>📉 Método Avalancha: ${target.name}</strong><span>${fmt(payAmount)} (Aprox)</span></div><p class="text-xs text-muted">Abono a capital (APR: ${target.apr||0}%).</p></div>`;
+            }
         } else if (debts.length === 0) {
             stratHTML += `<div class="strat-card ok"><strong>🛡️ Solidez Financiera</strong><p class="text-xs">Sin deudas activas.</p></div>`;
         }
+        
         const out = $('strategyOutput'); if(out) out.innerHTML = stratHTML;
     };
     
@@ -763,7 +796,7 @@
 
     $('formAcc').onsubmit = async (e) => {
         e.preventDefault(); const id = val('editAccId');
-        const data = { name: val('accName'), type: val('accType'), balance: num('accBalance'), owner: val('accOwner'), limit: num('accLimit'), cut: val('accCut'), payDay: val('accPayDay'), min: num('accMin'), noInt: num('accNoInt'), card: val('accCard'), clabe: val('accClabe'), currency: val('accCurrency'), order: num('accOrder') };
+        const data = { name: val('accName'), type: val('accType'), balance: num('accBalance'), owner: val('accOwner'), limit: num('accLimit'), cut: val('accCut'), payDay: val('accPayDay'), min: num('accMin'), noInt: num('accNoInt'), apr: num('accApr'), card: val('accCard'), clabe: val('accClabe'), currency: val('accCurrency'), order: num('accOrder') };
         if(id) await db.collection('accounts').doc(id).update(data); else await db.collection('accounts').add(data);
         closeModal('modalAcc');
     };
@@ -809,8 +842,8 @@
     }
 
     window.exportData = () => {
-        const rows = [["ID","Nombre","Tipo","Saldo","Moneda","Dueño","Limite","Minimo","NoIntereses","Corte","Pago","Tarjeta","CLABE","Orden"]];
-        state.accounts.forEach(a => { rows.push([a.id, a.name, a.type, a.balance, a.currency||'MXN', a.owner, a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0, a.card||'', a.clabe||'', a.order||0]); });
+        const rows = [["ID","Nombre","Tipo","Saldo","Moneda","Dueño","Limite","Minimo","NoIntereses","Corte","Pago","APR","Tarjeta","CLABE","Orden"]];
+        state.accounts.forEach(a => { rows.push([a.id, a.name, a.type, a.balance, a.currency||'MXN', a.owner, a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0, a.apr||0, a.card||'', a.clabe||'', a.order||0]); });
         let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
         const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent));
         link.setAttribute("download", "backup_finance.csv"); document.body.appendChild(link); link.click();
@@ -822,7 +855,7 @@
             const lines = e.target.result.split('\n'); const batch = db.batch();
             for(let i=1; i<lines.length; i++) {
                 const cols = lines[i].split(','); if(cols.length < 5) continue;
-                const data = { name: cols[1], type: cols[2], balance: parseFloat(cols[3]), currency: cols[4]||'MXN', owner: cols[5], limit: parseFloat(cols[6]||0), min: parseFloat(cols[7]||0), noInt: parseFloat(cols[8]||0), cut: cols[9]||0, payDay: cols[10]||0, card: cols[11]||'', clabe: cols[12]||'', order: parseFloat(cols[13]||0) };
+                const data = { name: cols[1], type: cols[2], balance: parseFloat(cols[3]), currency: cols[4]||'MXN', owner: cols[5], limit: parseFloat(cols[6]||0), min: parseFloat(cols[7]||0), noInt: parseFloat(cols[8]||0), cut: cols[9]||0, payDay: cols[10]||0, apr: parseFloat(cols[11]||0), card: cols[12]||'', clabe: cols[13]||'', order: parseFloat(cols[14]||0) };
                 if(cols[0] && cols[0].length > 5) batch.set(db.collection('accounts').doc(cols[0]), data, {merge:true}); else batch.set(db.collection('accounts').doc(), data);
             }
             await batch.commit(); alert("Datos importados."); closeModal('modalSettings');
@@ -853,7 +886,7 @@
     window.checkPin = () => { if(val('unlockPin') === state.settings.pin) { state.unlocked = true; closeModal('modalLock'); const t1=$('tabPartner'); if(t1) t1.classList.remove('locked'); const t2=$('tabAll'); if(t2) t2.classList.remove('locked'); setFilter(window.pendingUnlock); } else alert("PIN Incorrecto"); };
     window.toggleFields = () => { const isCredit = val('accType') === 'credit'; const f=$('creditFields'); if(f) f.classList.toggle('hidden', !isCredit); };
     window.openAccModal = () => { $('formAcc').reset(); setVal('editAccId',''); const btn=$('btnDelAcc'); if(btn) btn.classList.add('hidden'); toggleFields(); openModal('modalAcc'); };
-    window.openEditAcc = (a) => { setVal('editAccId', a.id); const btn=$('btnDelAcc'); if(btn) btn.classList.remove('hidden'); setVal('accName', a.name); setVal('accType', a.type); setVal('accBalance', a.balance); setVal('accOwner', a.owner); setVal('accLimit', a.limit); setVal('accCut', a.cut); setVal('accPayDay', a.payDay); setVal('accMin', a.min); setVal('accNoInt', a.noInt); setVal('accCard', a.card); setVal('accClabe', a.clabe); setVal('accCurrency', a.currency); setVal('accOrder', a.order); toggleFields(); openModal('modalAcc'); };
+    window.openEditAcc = (a) => { setVal('editAccId', a.id); const btn=$('btnDelAcc'); if(btn) btn.classList.remove('hidden'); setVal('accName', a.name); setVal('accType', a.type); setVal('accBalance', a.balance); setVal('accOwner', a.owner); setVal('accLimit', a.limit); setVal('accCut', a.cut); setVal('accPayDay', a.payDay); setVal('accMin', a.min); setVal('accNoInt', a.noInt); setVal('accApr', a.apr); setVal('accCard', a.card); setVal('accClabe', a.clabe); setVal('accCurrency', a.currency); setVal('accOrder', a.order); toggleFields(); openModal('modalAcc'); };
     window.openTxModal = () => { $('formTx').reset(); setVal('editTxId',''); $('txDate').valueAsDate=new Date(); setTxMode('expense'); openModal('modalTx'); };
     window.setTxMode = (m) => { setVal('txMode', m); document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active')); const b1=$('btnExp'), b2=$('btnInc'), b3=$('btnTrf'); if(m==='expense' && b1) b1.classList.add('active'); if(m==='income' && b2) b2.classList.add('active'); if(m==='transfer' && b3) b3.classList.add('active'); const d1=$('divTrf'), d2=$('divNormal'); if(d1) d1.classList.toggle('hidden', m!=='transfer'); if(d2) d2.classList.toggle('hidden', m==='transfer'); const fill = (id) => { const el=$(id); if(el) { el.innerHTML = ''; state.accounts.forEach(a => el.innerHTML += `<option value="${a.id}">${a.name} (${fmt(a.balance, a.currency)})</option>`); }}; fill('txAccount'); fill('payFrom'); fill('payTo'); };
     window.delAcc = async () => { if(confirm("¿Eliminar?")) await db.collection('accounts').doc(val('editAccId')).delete(); closeModal('modalAcc'); };
