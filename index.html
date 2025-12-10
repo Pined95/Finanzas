@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Titanium v2.0</title>
+    <title>SmartFinance | Titanium v2.1</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v2.0 === */
+        /* === TITANIUM DESIGN SYSTEM v2.1 === */
         :root { 
             --bg: #0b0f19; 
             --card-bg: #151b2b; 
@@ -147,6 +147,7 @@
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
         .btn-text { background: transparent; color: var(--text-muted); margin-top: 5px; }
         .btn-danger { color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .btn-success { color: var(--success); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
         .btn-sm { padding: 10px 16px; font-size: 0.85rem; width: auto; margin: 0; }
 
         /* Floating Actions */
@@ -167,7 +168,7 @@
         <i class="fas fa-layer-group" style="font-size: 2.5rem; color: white;"></i>
     </div>
     <h1 style="margin:0; font-weight:800; letter-spacing:-1px; font-size:2.5rem">SmartFinance</h1>
-    <p style="color:var(--text-muted); margin-bottom:50px; font-weight:300; letter-spacing:1px">Titanium v2.0</p>
+    <p style="color:var(--text-muted); margin-bottom:50px; font-weight:300; letter-spacing:1px">Titanium v2.1</p>
     <button class="btn btn-primary" style="max-width:300px; display:flex; align-items:center; justify-content:center; gap:12px" onclick="login()">
         <i class="fab fa-google"></i> Continuar con Google
     </button>
@@ -393,7 +394,7 @@
 
 <div class="modal" id="modalSettings">
     <div class="sheet">
-        <h3 style="margin-top:0">Ajustes</h3>
+        <h3 style="margin-top:0">Ajustes & Respaldo</h3>
         <div class="input-group">
             <label>Nombres</label>
             <div class="row-2"><input id="confMe" placeholder="Yo"><input id="confPartner" placeholder="Pareja"></div>
@@ -402,7 +403,21 @@
             <label>PIN Sincronización (4 dígitos)</label>
             <input type="password" id="confPin" maxlength="4" style="text-align:center; letter-spacing:8px; font-size:1.5rem">
         </div>
-        <button class="btn btn-primary" onclick="saveSettings()">Guardar</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Guardar Preferencias</button>
+        
+        <hr style="border-color:rgba(255,255,255,0.1); margin:25px 0">
+        
+        <label style="color:var(--info); margin-bottom:10px"><i class="fas fa-database"></i> Backup & Restore (Cuentas)</label>
+        <p class="text-sm text-muted">Descarga tus cuentas en CSV, edítalas en Excel y súbelas de nuevo.</p>
+        
+        <button class="btn btn-success" onclick="exportData()"><i class="fas fa-file-download"></i> Descargar CSV (Backup)</button>
+        
+        <div style="margin-top:15px; border:1px dashed rgba(255,255,255,0.2); padding:15px; border-radius:16px">
+             <label style="margin-bottom:10px">Restaurar / Actualizar desde CSV</label>
+             <input type="file" id="csvInput" accept=".csv" style="padding:10px; font-size:0.8rem">
+             <button class="btn btn-primary" onclick="importData()" style="margin-top:10px; background:var(--warning); color:black"><i class="fas fa-file-upload"></i> Subir y Actualizar</button>
+        </div>
+
         <hr style="border-color:rgba(255,255,255,0.1); margin:25px 0">
         <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
         <button class="btn btn-text" onclick="closeModal('modalSettings')">Cerrar</button>
@@ -889,7 +904,118 @@
     window.delPlan = (id) => { if(confirm('¿Borrar?')) db.collection('planning').doc(id).delete(); };
 
     // ==========================================
-    // 9. UI HELPERS
+    // 9. IMPORT/EXPORT CSV (BACKUP & RESTORE)
+    // ==========================================
+    window.exportData = () => {
+        if(state.accounts.length === 0) return showToast('No hay cuentas para exportar', 'error');
+        
+        // Headers del CSV
+        const headers = ["ID", "Nombre", "Tipo", "Dueño", "Saldo", "Limite", "DiaCorte", "DiaPago", "PagoNoIntereses", "PagoMinimo", "APR", "Tarjeta", "CLABE"];
+        
+        // Mapeo de datos
+        const rows = state.accounts.map(a => [
+            a.id, 
+            `"${a.name.replace(/"/g, '""')}"`, // Escapar comillas en nombres
+            a.type,
+            a.owner,
+            a.balance,
+            a.limit || 0,
+            a.cut || 0,
+            a.payDay || 0,
+            a.noInt || 0,
+            a.min || 0,
+            a.apr || 0,
+            `"${(a.card||'').replace(/"/g, '""')}"`,
+            `"${(a.clabe||'').replace(/"/g, '""')}"`
+        ]);
+
+        // Crear CSV
+        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+        
+        // Descargar
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `smartfinance_backup_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Backup descargado correctamente", "success");
+    };
+
+    window.importData = () => {
+        const input = $('csvInput');
+        if (!input.files.length) return showToast("Selecciona un archivo CSV primero", "error");
+        
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n');
+            const batch = db.batch();
+            let count = 0;
+
+            if (lines.length < 2) return showToast("Archivo vacío o inválido", "error");
+
+            loading(true);
+            try {
+                // Empezar desde 1 para saltar headers
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Simple CSV split (no soporta comas dentro de comillas complejas, pero funcional para este caso)
+                    // Usamos una regex básica para separar por comas ignorando comillas
+                    const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g).map(c => c.replace(/^"|"$/g, ''));
+                    
+                    if (cols.length < 5) continue; // Validación básica
+
+                    const data = {
+                        name: cols[1],
+                        type: cols[2],
+                        owner: cols[3],
+                        balance: parseFloat(cols[4]),
+                        limit: parseFloat(cols[5]||0),
+                        cut: parseInt(cols[6]||0),
+                        payDay: parseInt(cols[7]||0),
+                        noInt: parseFloat(cols[8]||0),
+                        min: parseFloat(cols[9]||0),
+                        apr: parseFloat(cols[10]||0),
+                        card: cols[11]||'',
+                        clabe: cols[12]||''
+                    };
+
+                    const id = cols[0];
+                    if (id && id.length > 5) {
+                        // Actualizar existente
+                        const ref = db.collection('accounts').doc(id);
+                        batch.set(ref, data, { merge: true });
+                    } else {
+                        // Crear nuevo
+                        const ref = db.collection('accounts').doc();
+                        batch.set(ref, data);
+                    }
+                    count++;
+                }
+                
+                await batch.commit();
+                showToast(`${count} Cuentas procesadas exitosamente`, "success");
+                closeModal('modalSettings');
+                input.value = ''; // Reset input
+            } catch (err) {
+                console.error(err);
+                showToast("Error al importar: " + err.message, "error");
+            }
+            loading(false);
+        };
+        
+        reader.readAsText(file);
+    };
+
+    // ==========================================
+    // 10. UI HELPERS
     // ==========================================
     window.openTxModal = () => { 
         $('editTxId').value=''; 
