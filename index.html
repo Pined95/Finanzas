@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartFinance | Brain v80</title>
+    <title>SmartFinance | Action v85</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* === TITANIUM DESIGN SYSTEM v80 === */
+        /* === ESTILOS v85 === */
         :root { 
             --bg: #0b0f19; --card: #151b2b; --input: #1e2532;
             --text: #ffffff; --text-muted: #94a3b8; 
@@ -29,69 +29,59 @@
         .container { max-width: 600px; margin: 0 auto; padding: 20px; display: none; opacity: 0; transition: opacity 0.5s ease; }
         .container.loaded { opacity: 1; }
         
-        /* LOGIN & LOADERS */
+        /* LOGIN */
         #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         #loading-overlay { position: fixed; inset: 0; background: rgba(11, 15, 25, 0.98); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; opacity: 0; pointer-events: none; }
         #loading-overlay.active { opacity: 1; pointer-events: all; }
         .brain-loader { width: 60px; height: 60px; font-size: 3rem; animation: pulse 1.5s infinite; color: var(--primary); }
         
-        /* HEADER & TABS */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .profile-tabs { background: rgba(0,0,0,0.3); padding: 5px; border-radius: 16px; display: flex; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); }
         .pt-btn { flex: 1; text-align: center; padding: 12px; border-radius: 12px; color: var(--text-muted); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .pt-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
 
-        /* THE BRAIN WIDGET */
+        /* WIDGET CEREBRO */
         .brain-widget { background: linear-gradient(135deg, #4338ca, #1e1b4b); padding: 25px; border-radius: 24px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden; box-shadow: 0 10px 40px rgba(67, 56, 202, 0.3); }
         .brain-widget::after { content:''; position: absolute; top:-50px; right:-50px; width:150px; height:150px; background:var(--accent); filter:blur(60px); opacity:0.4; }
         .brain-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .brain-status { font-weight: 800; font-size: 0.9rem; letter-spacing: 1px; color: #e0e7ff; text-transform: uppercase; }
         .brain-message { font-size: 1rem; line-height: 1.5; color: white; margin-bottom: 20px; position: relative; z-index: 2; }
         .brain-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: relative; z-index: 2; }
 
-        /* SUMMARY & STATS */
         .summary-card { background: #151b2b; border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 25px; margin-bottom: 20px; }
         .net-val { font-size: 2.8rem; font-weight: 800; margin: 5px 0; color: white; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
         .stat-item span:first-child { font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
         .stat-item span:last-child { font-size: 1.1rem; font-weight: 700; color: white; }
 
-        /* ACCOUNTS & LISTS */
         .acc-list { display: flex; overflow-x: auto; gap: 15px; padding: 5px 5px 20px; scroll-snap-type: x mandatory; }
         .acc-list::-webkit-scrollbar { display: none; }
-        .bank-card { flex: 0 0 280px; background: #1e293b; border-radius: 20px; padding: 20px; scroll-snap-align: center; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; overflow: hidden; }
-        .bank-card::before { content:''; position: absolute; top:0; left:0; width:100%; height:4px; background: var(--card-color, #334155); }
+        .bank-card { flex: 0 0 280px; background: #1e293b; border-radius: 20px; padding: 20px; scroll-snap-align: center; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; }
         
         .tx-list { display: flex; flex-direction: column; gap: 10px; }
-        .tx-item { background: #1a202c; padding: 15px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); transition: background 0.2s; }
-        .tx-item:active { background: #2d3748; }
+        .tx-item { background: #1a202c; padding: 15px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); }
 
-        /* MODALS */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
         .modal.open { display: flex; }
-        .sheet { background: #11141d; width: 100%; max-width: 550px; border-radius: 32px 32px 0 0; padding: 30px; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.15); animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .sheet { background: #11141d; width: 100%; max-width: 550px; border-radius: 32px 32px 0 0; padding: 25px; max-height: 90vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.15); animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-        /* FORMS */
         .input-group { margin-bottom: 20px; }
         label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         input, select { width: 100%; padding: 16px; background: var(--input); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; font-size: 1rem; outline: none; transition: border 0.2s; }
-        input:focus, select:focus { border-color: var(--primary); }
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 10px; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 10px; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-text { background: transparent; color: var(--text-muted); }
-        
         .fab { position: fixed; bottom: 30px; right: 25px; width: 65px; height: 65px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; box-shadow: 0 10px 30px rgba(99,102,241,0.4); z-index: 100; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); }
 
-        /* ADVICE CARDS */
-        .advice-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+        /* ACTIONABLE ADVICE CARDS */
+        .advice-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: transform 0.1s; position: relative; }
+        .advice-card:active { transform: scale(0.98); background: rgba(255,255,255,0.08); }
+        .advice-card::after { content: '\f061'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.2); }
         .advice-card.action { border-left: 4px solid var(--accent); background: rgba(139, 92, 246, 0.05); }
         .advice-card.danger { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.05); }
         .advice-card.success { border-left: 4px solid var(--success); background: rgba(16, 185, 129, 0.05); }
 
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
@@ -99,13 +89,13 @@
 
 <div id="loading-overlay">
     <div class="brain-loader"><i class="fas fa-brain"></i></div>
-    <div style="margin-top:20px; font-weight:600; letter-spacing:1px">SINCRONIZANDO DATOS...</div>
+    <div style="margin-top:20px; font-weight:600; letter-spacing:1px">CARGANDO...</div>
 </div>
 
 <div id="auth-screen">
-    <i class="fas fa-wallet" style="font-size: 5rem; color: var(--primary); margin-bottom: 25px;"></i>
+    <i class="fas fa-chart-line" style="font-size: 5rem; color: var(--primary); margin-bottom: 25px;"></i>
     <h1 style="margin:0; font-size:2.5rem">SmartFinance</h1>
-    <p style="color:var(--text-muted); margin-bottom:40px">Titanium Brain v80</p>
+    <p style="color:var(--text-muted); margin-bottom:40px">Action Edition v85</p>
     <button class="btn btn-primary" style="max-width:280px" onclick="login()">
         <i class="fab fa-google" style="margin-right:10px"></i> Acceder con Google
     </button>
@@ -115,12 +105,10 @@
     
     <div class="header">
         <div>
-            <small style="color:var(--text-muted); font-weight:700">BIENVENIDO,</small>
+            <small style="color:var(--text-muted); font-weight:700">PANEL DE CONTROL</small>
             <h3 id="uName" style="margin:5px 0 0">...</h3>
         </div>
-        <div style="display:flex; gap:10px">
-            <div class="icon-btn" onclick="openModal('modalSettings')" style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center"><i class="fas fa-cog"></i></div>
-        </div>
+        <div style="icon-btn" onclick="openModal('modalSettings')" style="cursor:pointer"><i class="fas fa-cog" style="font-size:1.2rem"></i></div>
     </div>
 
     <div class="profile-tabs">
@@ -132,34 +120,34 @@
     <div class="brain-widget">
         <div class="brain-header">
             <i class="fas fa-microchip" style="color:var(--accent)"></i>
-            <span class="brain-status">ANÁLISIS EN TIEMPO REAL</span>
+            <span style="font-weight:800; font-size:0.9rem; color:#e0e7ff">ANÁLISIS INTELIGENTE</span>
         </div>
-        <div id="brain-msg" class="brain-message">Tu salud financiera está estable. Abre la calculadora para optimizar.</div>
+        <div id="brain-msg" class="brain-message">Analizando salud financiera...</div>
         <div class="brain-actions">
-            <button class="btn" style="margin:0; padding:12px; font-size:0.8rem; background:rgba(255,255,255,0.2)" onclick="openStrategyModal()"><i class="fas fa-calculator"></i> Estrategia</button>
-            <button class="btn" style="margin:0; padding:12px; font-size:0.8rem; background:rgba(255,255,255,0.1)" onclick="openModal('modalPlanning')"><i class="fas fa-calendar-check"></i> Próx. Ingreso</button>
+            <button class="btn" style="margin:0; padding:12px; font-size:0.8rem; background:rgba(255,255,255,0.2)" onclick="openStrategyModal()"><i class="fas fa-bolt"></i> Ejecutar Estrategia</button>
+            <button class="btn" style="margin:0; padding:12px; font-size:0.8rem; background:rgba(255,255,255,0.1)" onclick="openModal('modalPlanning')"><i class="fas fa-calendar"></i> Próx. Ingresos</button>
         </div>
     </div>
 
     <div class="summary-card">
-        <small style="color:var(--text-muted); font-weight:700; text-transform:uppercase">Patrimonio Neto</small>
+        <small style="color:var(--text-muted); font-weight:700; text-transform:uppercase">Patrimonio Neto Real</small>
         <div class="net-val" id="netDisplay">$0.00</div>
         <div class="stat-grid">
-            <div class="stat-item"><span>Liquidez (Real)</span><span style="color:var(--success)" id="assetDisplay">--</span></div>
+            <div class="stat-item"><span>Liquidez (Bancos)</span><span style="color:var(--success)" id="assetDisplay">--</span></div>
             <div class="stat-item"><span>Deuda Total</span><span style="color:var(--danger)" id="debtDisplay">--</span></div>
-            <div class="stat-item"><span>Por Cobrar</span><span style="color:var(--pending)" id="pendDisplay">--</span></div>
-            <div class="stat-item"><span>Reservado</span><span style="color:var(--info)" id="goalsDisplay">--</span></div>
+            <div class="stat-item"><span>Por Cobrar (Pend)</span><span style="color:var(--pending)" id="pendDisplay">--</span></div>
+            <div class="stat-item"><span>Meta Ahorro</span><span style="color:var(--info)" id="goalsDisplay">--</span></div>
         </div>
     </div>
 
     <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin:30px 0 15px">
-        <span style="font-weight:800; color:var(--text-muted); font-size:0.85rem; letter-spacing:1px">MIS CUENTAS</span>
+        <span style="font-weight:800; color:var(--text-muted); font-size:0.85rem">CUENTAS</span>
         <span style="color:var(--primary); font-weight:700; cursor:pointer; font-size:0.85rem" onclick="openAccModal()">+ Nueva</span>
     </div>
     <div class="acc-list" id="accList"></div>
 
     <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; margin:30px 0 15px">
-        <span style="font-weight:800; color:var(--text-muted); font-size:0.85rem; letter-spacing:1px">MOVIMIENTOS</span>
+        <span style="font-weight:800; color:var(--text-muted); font-size:0.85rem">HISTORIAL</span>
         <input type="month" id="dateFilter" style="background:transparent; border:none; color:white; font-family:inherit; font-size:0.9rem; font-weight:700; cursor:pointer" onchange="loadTransactions()">
     </div>
     <div id="txList" class="tx-list"></div>
@@ -170,8 +158,8 @@
 
 <div class="modal" id="modalStrategy">
     <div class="sheet">
-        <h3 style="display:flex; align-items:center; gap:10px"><i class="fas fa-chess"></i> Estrategia Inteligente</h3>
-        <p style="color:var(--text-muted); margin-bottom:20px; font-size:0.9rem">Este motor analiza tus deudas por APR (interés) y te dice matemáticamente qué pagar primero.</p>
+        <h3 style="display:flex; align-items:center; gap:10px"><i class="fas fa-chess-knight"></i> Motor de Decisión</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px">Haz clic en una tarjeta para ejecutar la acción automáticamente.</p>
         
         <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin-bottom:20px">
             <div class="row-2">
@@ -184,27 +172,24 @@
                     <input type="number" id="stratBuffer" placeholder="$0" onchange="runStrategy()" style="padding:8px; width:100%; text-align:center; font-weight:700">
                 </div>
             </div>
-            <div style="margin-top:10px">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <label style="margin:0">Incluir Próximos Ingresos</label>
-                    <input type="checkbox" id="stratIncludeIncome" onchange="runStrategy()" style="width:auto">
-                </div>
+            <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
+                <input type="checkbox" id="stratIncludeIncome" onchange="runStrategy()" style="width:auto">
+                <label style="margin:0; font-size:0.8rem">Contar ingresos futuros (Próx. 15 días)</label>
             </div>
         </div>
 
-        <div id="stratResults"></div>
-        
+        <div id="actionPlan"></div>
+        <div id="calcResult" style="margin-top:25px; text-align:center; font-weight:800; font-size:1.2rem; padding:15px; background:rgba(255,255,255,0.05); border-radius:15px"></div>
         <button class="btn btn-text" onclick="closeModal('modalStrategy')">Cerrar</button>
     </div>
 </div>
 
 <div class="modal" id="modalPlanning">
     <div class="sheet">
-        <h3><i class="fas fa-calendar-alt"></i> Próximos Ingresos</h3>
-        <p style="color:var(--text-muted); font-size:0.9rem">Dinero que recibirás pronto (Nómina, Pagos, etc.)</p>
+        <h3>Próximos Ingresos</h3>
         <form id="formPlan" style="margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.1)">
             <div class="row-2">
-                <input type="text" id="planDesc" placeholder="Concepto" required>
+                <input type="text" id="planDesc" placeholder="Concepto (ej: Nómina)" required>
                 <input type="number" id="planAmount" placeholder="$ Monto" required>
             </div>
             <div class="input-group" style="margin-top:10px; display:flex; gap:10px">
@@ -219,28 +204,17 @@
 
 <div class="modal" id="modalAcc">
     <div class="sheet">
-        <h3>Configurar Cuenta</h3>
+        <h3>Cuenta</h3>
         <form id="formAcc">
             <input type="hidden" id="editAccId">
-            <div class="row-2">
-                <div class="input-group"><label>Nombre</label><input type="text" id="accName" required></div>
-                <div class="input-group"><label>Dueño</label><select id="accOwner"><option value="me">Mío</option><option value="partner">Pareja</option><option value="joint">Compartido</option></select></div>
+            <div class="row-2"><div class="input-group"><label>Nombre</label><input type="text" id="accName" required></div><div class="input-group"><label>Dueño</label><select id="accOwner"><option value="me">Mío</option><option value="partner">Pareja</option><option value="joint">Compartido</option></select></div></div>
+            <div class="input-group"><label>Tipo</label><select id="accType" onchange="toggleFields()"><option value="debit">Débito / Efectivo</option><option value="credit">Tarjeta de Crédito</option><option value="receivable">Por Cobrar (Deudores)</option></select></div>
+            <div class="row-2"><div class="input-group"><label>Saldo</label><input type="number" id="accBalance" step="0.01" required></div><div class="input-group"><label>Límite (Crédito)</label><input type="number" id="accLimit" step="0.01"></div></div>
+            <div id="fieldsCredit" style="display:none; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:15px">
+                <label style="color:var(--warning); margin-bottom:10px">Datos Estratégicos</label>
+                <div class="row-2"><div class="input-group"><label>APR %</label><input type="number" id="accApr"></div><div class="input-group"><label>Día Corte</label><input type="number" id="accCut"></div></div>
             </div>
-            <div class="input-group"><label>Tipo</label><select id="accType" onchange="toggleFields()"><option value="debit">Débito / Efectivo</option><option value="credit">Tarjeta de Crédito</option><option value="receivable">Por Cobrar (Deuda a mi favor)</option></select></div>
-            <div class="row-2">
-                <div class="input-group"><label>Saldo Actual</label><input type="number" id="accBalance" step="0.01" required></div>
-                <div class="input-group"><label>Límite (Solo Crédito)</label><input type="number" id="accLimit" step="0.01"></div>
-            </div>
-            
-            <div id="fieldsCredit" style="display:none; background:rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:20px">
-                <label style="color:var(--warning); margin-bottom:10px">Datos para el Cerebro Financiero</label>
-                <div class="row-2">
-                    <div class="input-group"><label>APR % (Interés Anual)</label><input type="number" id="accApr" placeholder="Ej: 60"></div>
-                    <div class="input-group"><label>Día de Corte</label><input type="number" id="accCut"></div>
-                </div>
-            </div>
-
-            <button class="btn btn-primary">Guardar Cuenta</button>
+            <button class="btn btn-primary">Guardar</button>
             <button type="button" class="btn btn-text" style="color:var(--danger)" id="btnDelAcc" onclick="delAcc()">Eliminar</button>
             <button type="button" class="btn btn-text" onclick="closeModal('modalAcc')">Cancelar</button>
         </form>
@@ -262,8 +236,8 @@
             <input type="date" id="txDate" class="input-group" required>
             <div id="divNormal" class="input-group"><label>Cuenta</label><select id="txAccount"></select></div>
             <div id="divPay" style="display:none">
-                <div class="input-group"><label>Origen</label><select id="payFrom"></select></div>
-                <div class="input-group"><label>Destino</label><select id="payTo"></select></div>
+                <div class="input-group"><label>Desde</label><select id="payFrom"></select></div>
+                <div class="input-group"><label>Hacia</label><select id="payTo"></select></div>
             </div>
             <div class="input-group"><label>Categoría</label><select id="txCat"><option value="food">🍔 Comida</option><option value="transport">⛽ Transporte</option><option value="home">🏠 Hogar</option><option value="fun">🍿 Ocio</option><option value="shopping">🛍️ Compras</option><option value="debt">💸 Deuda</option><option value="income">💰 Ingreso</option><option value="other">📦 Otro</option></select></div>
             <button class="btn btn-primary">Registrar</button>
@@ -273,10 +247,10 @@
     </div>
 </div>
 
-<div class="modal" id="modalSettings"><div class="sheet"><h3>Ajustes</h3><div class="input-group"><div class="row-2"><input id="confMe" placeholder="Yo"><input id="confPartner" placeholder="Pareja"></div></div><button class="btn btn-primary" onclick="saveSettings()">Guardar Nombres</button><hr style="border-color:rgba(255,255,255,0.1); margin:20px 0"><button class="btn btn-text" onclick="loadData()">🔄 Forzar Recarga de Datos</button><button class="btn btn-text" style="color:var(--danger); margin-top:10px" onclick="logout()">Cerrar Sesión</button><button class="btn btn-text" onclick="closeModal('modalSettings')">Cerrar</button></div></div>
+<div class="modal" id="modalSettings"><div class="sheet"><h3>Ajustes</h3><div class="input-group"><div class="row-2"><input id="confMe" placeholder="Yo"><input id="confPartner" placeholder="Pareja"></div></div><button class="btn btn-primary" onclick="saveSettings()">Guardar Nombres</button><hr style="border-color:rgba(255,255,255,0.1); margin:20px 0"><button class="btn btn-text" onclick="location.reload()">🔄 Forzar Recarga</button><button class="btn btn-text" style="color:var(--danger); margin-top:10px" onclick="logout()">Cerrar Sesión</button><button class="btn btn-text" onclick="closeModal('modalSettings')">Cerrar</button></div></div>
 
 <script>
-    // --- CONFIGURACIÓN FIREBASE (PEGAR CLAVES AQUÍ) ---
+    // --- 1. CLAVES FIREBASE ---
     const cfg = {
         apiKey: "AIzaSyC2Rw1f-2omvR6be9lHwbfhYT-JxyN3gmY",
         authDomain: "misfinanzas-860a5.firebaseapp.com",
@@ -289,14 +263,14 @@
     if(!firebase.apps.length) firebase.initializeApp(cfg);
     const auth = firebase.auth(); const db = firebase.firestore();
 
-    // --- STATE ---
+    // --- 2. ESTADO ---
     const state = { 
         user: null, accounts: [], txs: [], planning: [], filter: 'all', 
         labels: JSON.parse(localStorage.getItem('sf_lbl')) || { me: 'Mío', partner: 'Pareja' },
         buffer: parseFloat(localStorage.getItem('sf_buffer')) || 0
     };
 
-    // --- UTILS ---
+    // --- 3. UTILS ---
     const $ = (i) => document.getElementById(i);
     const val = (i) => $(i).value;
     const num = (i) => parseFloat(val(i)) || 0;
@@ -305,7 +279,7 @@
     const openModal = (i) => $(i).classList.add('open');
     const closeModal = (i) => $(i).classList.remove('open');
 
-    // --- AUTH ---
+    // --- 4. AUTH & DATA ---
     auth.onAuthStateChanged(u => {
         if(u) {
             state.user = u;
@@ -323,27 +297,17 @@
     window.login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message));
     window.logout = () => auth.signOut();
 
-    // --- DATA LOADING (SANITIZED) ---
     function loadData() {
         loading(true);
-        // Load Accounts
         db.collection('accounts').onSnapshot(s => {
             state.accounts = [];
             s.forEach(d => {
                 const data = d.data();
-                // Sanitize numbers to avoid NaN
-                state.accounts.push({
-                    id: d.id, 
-                    ...data, 
-                    balance: Number(data.balance) || 0,
-                    limit: Number(data.limit) || 0,
-                    apr: Number(data.apr) || 0
-                });
+                state.accounts.push({ id: d.id, ...data, balance: Number(data.balance)||0, limit: Number(data.limit)||0, apr: Number(data.apr)||0 });
             });
             renderAccounts();
             loading(false);
         });
-        // Load Planning
         db.collection('planning').onSnapshot(s => {
             state.planning = [];
             s.forEach(d => state.planning.push({id:d.id, ...d.data()}));
@@ -352,12 +316,12 @@
         loadTransactions();
     }
 
-    // --- RENDERING ---
+    // --- 5. RENDER ---
     function renderAccounts() {
         const l = $('accList'); l.innerHTML = '';
         let assets=0, debt=0, pending=0;
         
-        // Filter Logic
+        // FILTER:
         const visibleAccs = state.accounts.filter(a => {
             if(state.filter === 'all') return true;
             if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint';
@@ -373,18 +337,19 @@
         $('assetDisplay').innerText = fmt(assets);
         $('debtDisplay').innerText = fmt(debt);
         $('pendDisplay').innerText = fmt(pending);
-        $('netDisplay').innerText = fmt(assets - debt + pending);
+        // FIX: PATRIMONIO = LIQUIDEZ - DEUDA (PENDING NO SUMA)
+        $('netDisplay').innerText = fmt(assets - debt);
 
         if(visibleAccs.length === 0) l.innerHTML = '<div style="text-align:center;width:100%;color:gray;padding:20px;border:1px dashed gray;border-radius:10px">No hay cuentas.<br>Crea una nueva (+).</div>';
 
         visibleAccs.sort((a,b) => (a.order||0) - (b.order||0)).forEach(a => {
             const card = document.createElement('div'); card.className = 'bank-card';
-            card.style.setProperty('--card-color', getBankColor(a.name));
+            card.style.background = `linear-gradient(135deg, ${getBankColor(a.name)}, #1e293b)`;
             card.onclick = () => openEditAcc(a);
             
             let extra = '';
             if(a.type==='credit' && a.limit>0) {
-                const p = (a.balance/a.limit)*100;
+                const p = Math.min(100, (a.balance/a.limit)*100);
                 extra = `<div style="height:4px;background:rgba(255,255,255,0.1);margin-top:10px;border-radius:2px"><div style="width:${p}%;background:${p>70?'var(--danger)':'var(--success)'};height:100%"></div></div><div style="font-size:0.7rem;margin-top:5px;display:flex;justify-content:space-between;opacity:0.7"><span>Uso: ${p.toFixed(0)}%</span><span>APR: ${a.apr||0}%</span></div>`;
             }
 
@@ -392,7 +357,7 @@
             l.appendChild(card);
         });
         
-        runBrainWidget(visibleAccs, assets, debt);
+        runBrainWidget(assets, debt);
     }
 
     function loadTransactions() {
@@ -404,7 +369,6 @@
             state.txs = [];
             s.forEach(d => state.txs.push({id:d.id, ...d.data()}));
             
-            // Filter Transactions based on visible accounts
             const filteredTxs = state.txs.filter(t => {
                 if(state.filter === 'all') return true;
                 const acc = state.accounts.find(a => a.id === (t.accId || t.fromId));
@@ -426,127 +390,120 @@
         });
     }
 
-    // --- 6. THE BRAIN (Estrategia Avanzada) ---
-    function runBrainWidget(accs, assets, debts) {
-        // Quick summary for home screen
+    // --- 6. THE BRAIN (STRATEGY & ACTION) ---
+    function runBrainWidget(assets, debts) {
         const msg = $('brain-msg');
-        if(debts > assets) {
-            msg.innerHTML = `⚠️ <b>Alerta:</b> Tus deudas superan tu liquidez. Entra a la Estrategia para ver el plan de emergencia.`;
-            msg.style.color = "#fca5a5";
-        } else if (debts > 0) {
-            msg.innerHTML = `Tienes deudas activas. Te recomiendo revisarlas para evitar intereses.`;
-            msg.style.color = "white";
-        } else {
-            msg.innerHTML = `✅ <b>Excelente:</b> Finanzas sanas. Es buen momento para planear inversiones.`;
-            msg.style.color = "#86efac";
-        }
+        if(debts > assets) { msg.innerHTML = `⚠️ <b>Alerta:</b> Tus deudas superan tu liquidez. Entra a la Estrategia para ver el plan de emergencia.`; msg.style.color = "#fca5a5"; } 
+        else if (debts > 0) { msg.innerHTML = `Tienes deudas activas. Te recomiendo revisarlas para evitar intereses.`; msg.style.color = "white"; } 
+        else { msg.innerHTML = `✅ <b>Excelente:</b> Finanzas sanas. Es buen momento para planear inversiones.`; msg.style.color = "#86efac"; }
     }
 
     window.runStrategy = () => {
-        // 1. Data Gathering
         const buffer = num('stratBuffer');
         state.buffer = buffer; localStorage.setItem('sf_buffer', buffer);
         
-        // Filter accounts based on current Tab View
+        // 1. Get Accounts based on Filter
         const relevantAccs = state.accounts.filter(a => {
             if(state.filter === 'all') return true;
             if(state.filter === 'me') return a.owner === 'me' || a.owner === 'joint';
             if(state.filter === 'partner') return a.owner === 'partner' || a.owner === 'joint';
         });
 
+        // 2. Calculate Liquid
         let liquid = relevantAccs.reduce((s,a) => (a.type==='debit' ? s+a.balance : s), 0);
         
-        // Add pending income if checked
+        // 3. Add Planning (15 Days)
         if($('stratIncludeIncome').checked) {
-            const today = new Date().toISOString().slice(0,10);
+            const today = new Date(); const limit = new Date(); limit.setDate(today.getDate() + 15);
             const pendingIncome = state.planning
-                .filter(p => p.date >= today)
+                .filter(p => { const pd = new Date(p.date); return pd >= today && pd <= limit; })
                 .reduce((s,p) => s + (Number(p.amount)||0), 0);
             liquid += pendingIncome;
         }
 
         $('stratLiquid').innerText = fmt(liquid);
 
-        // 2. Logic Core (The Brain)
+        // 4. Logic & Actionable Cards
         const debts = relevantAccs.filter(a => a.type==='credit' && a.balance > 0);
-        const container = $('stratResults');
+        const container = $('actionPlan');
         let html = '';
         let totalToPay = 0;
 
-        // SCENARIO 1: SURVIVAL MODE (Liquid < Buffer)
         if (liquid < buffer) {
-            html += `<div class="advice-card danger">
-                <strong>🚨 MODO SUPERVIVENCIA</strong>
-                <p style="font-size:0.85rem; margin-top:5px">Tu liquidez (${fmt(liquid)}) está por debajo de tu seguridad (${fmt(buffer)}). <br><b>ACCIÓN:</b> Paga solo el mínimo en todas las tarjetas. No gastes nada extra.</p>
-            </div>`;
-            
+            html += `<div class="advice-card danger"><strong>🚨 MODO SUPERVIVENCIA</strong><p style="font-size:0.85rem">Estás por debajo de tu reserva. Paga solo mínimos.</p></div>`;
             debts.forEach(d => {
-                const minPay = (d.balance * 0.05); // Estimate 5% min pay
-                html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px">
-                    <span>Mínimo ${d.name}</span>
-                    <span style="color:var(--warning)">-${fmt(minPay)}</span>
-                </div>`;
+                const minPay = (d.balance * 0.05); // 5% est
+                html += renderActionCard(d, minPay, "Pago Mínimo", "var(--warning)");
                 totalToPay += minPay;
             });
-
-        // SCENARIO 2: DEBT AVALANCHE (Has High Interest Debts)
         } else if (debts.length > 0) {
-            // Sort by APR desc
-            debts.sort((a,b) => (b.apr||0) - (a.apr||0));
+            debts.sort((a,b) => (b.apr||0) - (a.apr||0)); // Avalanche
+            html += `<div class="advice-card action"><strong>⚔️ MÉTODO AVALANCHA</strong><p style="font-size:0.85rem">Atacando deuda con mayor interés.</p></div>`;
             
-            html += `<div class="advice-card action">
-                <strong>⚔️ MÉTODO AVALANCHA ACTIVO</strong>
-                <p style="font-size:0.85rem; margin-top:5px">Ataca la deuda con mayor interés primero. Paga mínimos en las demás.</p>
-            </div>`;
-
-            let availableCash = liquid - buffer; // Cash available for debt
-
-            debts.forEach((d, index) => {
-                let payAmt = 0;
-                let reason = '';
-                
-                // Highest APR gets the surplus
-                if (index === 0) { 
+            let availableCash = liquid - buffer;
+            debts.forEach((d, i) => {
+                let payAmt = 0; let reason = ''; let color = '';
+                if (i === 0) { // Highest APR
                     payAmt = Math.min(d.balance, availableCash);
                     reason = `Prioridad (APR ${d.apr}%)`;
+                    color = 'var(--primary)';
                     availableCash -= payAmt;
                 } else {
-                    payAmt = d.balance * 0.05; // Min pay others
+                    payAmt = d.balance * 0.05; 
                     reason = "Pago Mínimo";
-                    availableCash -= payAmt; // Subtract min pay from cash
+                    color = 'var(--warning)';
+                    availableCash -= payAmt;
                 }
-                
+                html += renderActionCard(d, payAmt, reason, color);
                 totalToPay += payAmt;
-
-                html += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px; border-left: 3px solid ${index===0 ? 'var(--primary)' : 'gray'}">
-                    <div><div>${d.name}</div><div style="font-size:0.7rem; opacity:0.7">${reason}</div></div>
-                    <div style="font-weight:700">-${fmt(payAmt)}</div>
-                </div>`;
             });
-
-        // SCENARIO 3: WEALTH BUILDING (No Debts)
         } else {
-            html += `<div class="advice-card success">
-                <strong>🚀 SALUD FINANCIERA ÓPTIMA</strong>
-                <p style="font-size:0.85rem; margin-top:5px">No tienes deudas tóxicas. Tu dinero está listo para crecer.</p>
-            </div>`;
-            
-            const freeCash = liquid - buffer;
-            if(freeCash > 0) {
-                html += `<div style="margin-top:10px; padding:15px; border:1px dashed var(--success); border-radius:10px; text-align:center">
-                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--success)">Excedente para Inversión</div>
-                    <div style="font-size:1.5rem; font-weight:800">${fmt(freeCash)}</div>
-                    <div style="font-size:0.8rem; opacity:0.7; margin-top:5px">Sugiero: 50% Ahorro / 50% Inversión</div>
-                </div>`;
-            }
+            const free = liquid - buffer;
+            html += `<div class="advice-card success"><strong>🚀 EXCEDENTE DISPONIBLE</strong><p style="font-size:0.85rem">Sin deudas. Tienes <b>${fmt(free)}</b> para invertir.</p></div>`;
         }
 
         container.innerHTML = html;
+        const available = liquid - buffer - totalToPay;
+        $('calcResult').innerText = available >= 0 ? `Te quedan libres: ${fmt(available)}` : `Déficit: ${fmt(available)}`;
+        $('calcResult').style.color = available >= 0 ? 'var(--success)' : 'var(--danger)';
+    };
+
+    function renderActionCard(acc, amount, reason, color) {
+        return `<div class="advice-card" style="border-left-color:${color}" onclick="execStrat('${acc.id}', '${acc.name}', ${amount})">
+            <div style="display:flex;justify-content:space-between">
+                <div><b>${acc.name}</b><div style="font-size:0.75rem;opacity:0.8">${reason}</div></div>
+                <div style="text-align:right">
+                    <div style="font-weight:800;font-size:1.1rem">-${fmt(amount)}</div>
+                    <div style="font-size:0.7rem;color:var(--primary);margin-top:2px">EJECUTAR PAGO</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // --- 7. AUTO-EXECUTE STRATEGY ---
+    window.execStrat = (accId, accName, amount) => {
+        // 1. Open Tx Modal
+        openTxModal();
+        // 2. Set Mode Payment
+        setTxMode('payment');
+        // 3. Set Destination
+        $('payTo').value = accId;
+        // 4. Find Best Source (Highest Balance Debit)
+        const sources = state.accounts.filter(a => a.type === 'debit' && (state.filter === 'all' || a.owner === state.filter || a.owner === 'joint'));
+        if(sources.length > 0) {
+            sources.sort((a,b) => b.balance - a.balance);
+            $('payFrom').value = sources[0].id;
+        }
+        // 5. Fill Details
+        $('txAmount').value = amount.toFixed(2);
+        $('txDesc').value = `Pago Estratégico: ${accName}`;
+        // 6. Close Strat
+        closeModal('modalStrategy');
     };
 
     window.openStrategyModal = () => { openModal('modalStrategy'); runStrategy(); };
 
-    // --- PLANNING ---
+    // --- 8. PLANNING ---
     function renderPlanning() {
         const l = $('planList'); l.innerHTML = '';
         state.planning.sort((a,b)=>a.date.localeCompare(b.date)).forEach(p => {
@@ -556,87 +513,19 @@
             l.appendChild(div);
         });
     }
-    $('formPlan').onsubmit = async (e) => {
-        e.preventDefault();
-        await db.collection('planning').add({desc:val('planDesc'), amount:num('planAmount'), date:val('planDate')});
-        $('formPlan').reset();
-    };
+    $('formPlan').onsubmit = async (e) => { e.preventDefault(); await db.collection('planning').add({desc:val('planDesc'), amount:num('planAmount'), date:val('planDate')}); $('formPlan').reset(); };
     window.delPlan = (id) => { if(confirm('¿Borrar?')) db.collection('planning').doc(id).delete(); };
 
-    // --- ACTIONS & CRUD ---
-    $('formAcc').onsubmit = async (e) => {
-        e.preventDefault(); loading(true);
-        const d = { name: val('accName'), type: val('accType'), balance: num('accBalance'), limit: num('accLimit'), owner: val('accOwner'), apr: num('accApr'), cut: num('accCut') };
-        const id = val('editAccId');
-        if(id) await db.collection('accounts').doc(id).update(d); else await db.collection('accounts').add(d);
-        closeModal('modalAcc'); loading(false);
-    };
+    // --- 9. CRUD ---
+    $('formAcc').onsubmit = async (e) => { e.preventDefault(); loading(true); const d = { name: val('accName'), type: val('accType'), balance: num('accBalance'), limit: num('accLimit'), owner: val('accOwner'), apr: num('accApr'), cut: num('accCut') }; const id = val('editAccId'); if(id) await db.collection('accounts').doc(id).update(d); else await db.collection('accounts').add(d); closeModal('modalAcc'); loading(false); };
+    $('formTx').onsubmit = async (e) => { e.preventDefault(); loading(true); const id = val('editTxId'); const d = { amount: num('txAmount'), desc: val('txDesc'), date: val('txDate'), type: val('txMode'), cat: val('txCat'), accId: val('txAccount')||null, fromId: val('payFrom')||null, toId: val('payTo')||null }; const b = db.batch(); const r = id ? db.collection('transactions').doc(id) : db.collection('transactions').doc(); if(!id) { if(d.type==='expense'){ const a=state.accounts.find(x=>x.id===d.accId); let nb=a.balance; if(a.type==='credit')nb+=d.amount;else nb-=d.amount; b.update(db.collection('accounts').doc(a.id),{balance:nb}); } else if(d.type==='income'){ const a=state.accounts.find(x=>x.id===d.accId); let nb=a.balance; if(a.type==='credit')nb-=d.amount;else nb+=d.amount; b.update(db.collection('accounts').doc(a.id),{balance:nb}); } else if(d.type==='payment'){ const f=state.accounts.find(x=>x.id===d.fromId); const t=state.accounts.find(x=>x.id===d.toId); b.update(db.collection('accounts').doc(f.id),{balance:f.balance-d.amount}); let tb=t.balance; if(t.type==='credit')tb-=d.amount;else tb+=d.amount; b.update(db.collection('accounts').doc(t.id),{balance:tb}); } } b.set(r,d); await b.commit(); loading(false); closeModal('modalTx'); };
 
-    $('formTx').onsubmit = async (e) => {
-        e.preventDefault(); loading(true);
-        const id = val('editTxId');
-        const data = {
-            amount: num('txAmount'), desc: val('txDesc'), date: val('txDate'),
-            type: val('txMode'), cat: val('txCat'),
-            accId: val('txAccount') || null, fromId: val('payFrom') || null, toId: val('payTo') || null
-        };
-        
-        const batch = db.batch();
-        const ref = id ? db.collection('transactions').doc(id) : db.collection('transactions').doc();
-        
-        if(!id) { // Solo afectar saldo si es nueva
-            if(data.type === 'expense') {
-                const a = state.accounts.find(x=>x.id===data.accId);
-                let nb = a.balance; if(a.type==='credit') nb += data.amount; else nb -= data.amount;
-                batch.update(db.collection('accounts').doc(a.id), {balance: nb});
-            } else if (data.type === 'income') {
-                const a = state.accounts.find(x=>x.id===data.accId);
-                let nb = a.balance; if(a.type==='credit') nb -= data.amount; else nb += data.amount;
-                batch.update(db.collection('accounts').doc(a.id), {balance: nb});
-            } else if (data.type === 'payment') {
-                const f = state.accounts.find(x=>x.id===data.fromId);
-                const t = state.accounts.find(x=>x.id===data.toId);
-                batch.update(db.collection('accounts').doc(f.id), {balance: f.balance - data.amount});
-                let tb = t.balance; if(t.type==='credit') tb -= data.amount; else tb += data.amount;
-                batch.update(db.collection('accounts').doc(t.id), {balance: tb});
-            }
-        }
-        batch.set(ref, data);
-        await batch.commit(); loading(false); closeModal('modalTx');
-    };
-
-    // --- HELPERS UI ---
-    window.setFilter = (f) => { state.filter = f; 
-        ['tabAll','tabMe','tabPartner'].forEach(b=>$(b).className='pt-btn');
-        $(f==='all'?'tabAll':(f==='me'?'tabMe':'tabPartner')).classList.add('active');
-        renderAccounts(); 
-    };
+    // --- HELPERS ---
+    window.setFilter = (f) => { state.filter=f; ['tabAll','tabMe','tabPartner'].forEach(b=>$(b).className='pt-btn'); $(f==='all'?'tabAll':(f==='me'?'tabMe':'tabPartner')).classList.add('active'); renderAccounts(); };
+    window.getBankColor = (n) => { n=n.toLowerCase(); if(n.includes('bbva'))return '#004481'; if(n.includes('nu'))return '#820ad1'; if(n.includes('santander'))return '#ec0000'; return '#334155'; };
+    window.updateLabels = () => { $('tabMe').innerText=state.labels.me; $('tabPartner').innerText=state.labels.partner; const s=$('accOwner'); if(s){s.options[0].text=state.labels.me; s.options[1].text=state.labels.partner;} $('confMe').value=state.labels.me||''; $('confPartner').value=state.labels.partner||''; };
+    window.saveSettings = () => { state.labels.me=val('confMe'); state.labels.partner=val('confPartner'); localStorage.setItem('sf_lbl', JSON.stringify(state.labels)); updateLabels(); closeModal('modalSettings'); };
     
-    function getBankColor(name) {
-        const n = name.toLowerCase();
-        if(n.includes('bbva')) return '#004481';
-        if(n.includes('nu')) return '#820ad1';
-        if(n.includes('santander')) return '#ec0000';
-        if(n.includes('amex')) return '#006fcf';
-        return '#334155';
-    }
-
-    function updateLabels() {
-        $('tabMe').innerText = state.labels.me || 'Mío';
-        $('tabPartner').innerText = state.labels.partner || 'Pareja';
-        const s = $('accOwner');
-        if(s) { s.options[0].text=state.labels.me; s.options[1].text=state.labels.partner; }
-        $('confMe').value = state.labels.me || '';
-        $('confPartner').value = state.labels.partner || '';
-    }
-
-    window.saveSettings = () => {
-        state.labels.me = val('confMe'); state.labels.partner = val('confPartner');
-        localStorage.setItem('sf_lbl', JSON.stringify(state.labels));
-        updateLabels(); closeModal('modalSettings');
-    };
-
-    // Modal controls
     window.openTxModal = () => { $('editTxId').value=''; $('txDate').valueAsDate=new Date(); setTxMode('expense'); openModal('modalTx'); };
     window.openEditTx = (t) => { $('editTxId').value=t.id; $('txAmount').value=t.amount; $('txDesc').value=t.desc; $('txDate').value=t.date; setTxMode(t.type==='transfer'?'payment':t.type); if(t.type==='transfer'){$('payFrom').value=t.fromId;$('payTo').value=t.toId}else{$('txAccount').value=t.accId}; openModal('modalTx'); };
     window.openAccModal = () => { $('formAcc').reset(); $('editAccId').value=''; openModal('modalAcc'); };
