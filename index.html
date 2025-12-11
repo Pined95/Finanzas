@@ -895,24 +895,123 @@
         batch.update(db.collection('accounts').doc(id), { balance: newBal });
     }
 
+    // --- CSV SERVICE REFALCTORIZADO ---
+    const CSVService = {
+        escape: (val) => {
+            if (val === null || val === undefined) return '';
+            const str = String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        },
+        parseLine: (str) => {
+            const arr = [];
+            let quote = false;
+            let cell = '';
+            for (let i = 0; i < str.length; i++) {
+                let c = str[i];
+                if (c === '"' && str[i+1] === '"') { cell += '"'; i++; continue; } // Handle double quotes
+                if (c === '"') { quote = !quote; continue; }
+                if (c === ',' && !quote) { arr.push(cell); cell = ''; continue; }
+                cell += c;
+            }
+            arr.push(cell);
+            return arr;
+        }
+    };
+
     window.exportData = () => {
-        const rows = [["ID","Nombre","Tipo","Saldo","Moneda","Dueño","Limite","Minimo","NoIntereses","Corte","Pago","APR","Tarjeta","CLABE","Orden"]];
-        state.accounts.forEach(a => { rows.push([a.id, a.name, a.type, a.balance, a.currency||'MXN', a.owner, a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0, a.apr||0, a.card||'', a.clabe||'', a.order||0]); });
-        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
-        const link = document.createElement("a"); link.setAttribute("href", encodeURI(csvContent));
-        link.setAttribute("download", "backup_finance.csv"); document.body.appendChild(link); link.click();
+        const headers = ["ID","Nombre","Tipo","Saldo","Moneda","Dueño","Limite","Minimo","NoIntereses","Corte","Pago","APR","Tarjeta","CLABE","Orden"];
+        const rows = [headers.map(CSVService.escape).join(",")];
+        
+        state.accounts.forEach(a => {
+            const row = [
+                a.id, a.name, a.type, a.balance, a.currency||'MXN', a.owner,
+                a.limit||0, a.min||0, a.noInt||0, a.cut||0, a.payDay||0, a.apr||0,
+                a.card||'', a.clabe||'', a.order||0
+            ];
+            rows.push(row.map(CSVService.escape).join(","));
+        });
+        
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURI(rows.join("\n"));
+        const link = document.createElement("a");
+        link.setAttribute("href", csvContent);
+        const date = new Date().toISOString().slice(0,10);
+        link.setAttribute("download", `backup_finance_${date}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     window.importData = () => {
-        const input = $('csvInput'); if(!input.files.length) return;
-        const reader = new FileReader(); reader.onload = async (e) => {
-            const lines = e.target.result.split('\n'); const batch = db.batch();
-            for(let i=1; i<lines.length; i++) {
-                const cols = lines[i].split(','); if(cols.length < 5) continue;
-                const data = { name: cols[1], type: cols[2], balance: parseFloat(cols[3]), currency: cols[4]||'MXN', owner: cols[5], limit: parseFloat(cols[6]||0), min: parseFloat(cols[7]||0), noInt: parseFloat(cols[8]||0), cut: cols[9]||0, payDay: cols[10]||0, apr: parseFloat(cols[11]||0), card: cols[12]||'', clabe: cols[13]||'', order: parseFloat(cols[14]||0) };
-                if(cols[0] && cols[0].length > 5) batch.set(db.collection('accounts').doc(cols[0]), data, {merge:true}); else batch.set(db.collection('accounts').doc(), data);
+        const input = $('csvInput'); 
+        if(!input.files.length) return;
+        
+        loading(true);
+        const reader = new FileReader();
+        
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const lines = text.split('\n').filter(l => l.trim() !== '');
+                if (lines.length < 2) throw new Error("Archivo vacío o inválido");
+
+                // Parse Headers to detect column index dynamically
+                const headers = CSVService.parseLine(lines[0].trim());
+                const map = {};
+                headers.forEach((h, i) => map[h.replace(/"/g, '')] = i);
+
+                const batch = db.batch();
+                let count = 0;
+
+                for(let i=1; i<lines.length; i++) {
+                    const cols = CSVService.parseLine(lines[i].trim());
+                    if(cols.length < 3) continue; // Basic validation
+
+                    // Helper to get value securely by header name
+                    const getVal = (key) => {
+                        const idx = map[key];
+                        return (idx !== undefined && cols[idx]) ? cols[idx] : null;
+                    };
+
+                    const data = {
+                        name: getVal("Nombre") || 'Sin Nombre',
+                        type: getVal("Tipo") || 'debit',
+                        balance: parseFloat(getVal("Saldo") || 0),
+                        currency: getVal("Moneda") || 'MXN',
+                        owner: getVal("Dueño") || 'me',
+                        limit: parseFloat(getVal("Limite") || 0),
+                        min: parseFloat(getVal("Minimo") || 0),
+                        noInt: parseFloat(getVal("NoIntereses") || 0),
+                        cut: getVal("Corte") || 0,
+                        payDay: getVal("Pago") || 0,
+                        apr: parseFloat(getVal("APR") || 0),
+                        card: getVal("Tarjeta") || '',
+                        clabe: getVal("CLABE") || '',
+                        order: parseFloat(getVal("Orden") || 99)
+                    };
+
+                    const docId = getVal("ID");
+                    // If docId exists and looks like a firebase ID (>5 chars), update. Else create new.
+                    if(docId && docId.length > 5) {
+                        batch.set(db.collection('accounts').doc(docId), data, {merge:true});
+                    } else {
+                        batch.set(db.collection('accounts').doc(), data);
+                    }
+                    count++;
+                }
+                
+                await batch.commit();
+                alert(`Proceso completado. ${count} registros importados.`);
+                closeModal('modalSettings');
+            } catch (err) {
+                console.error(err);
+                alert("Error al importar: " + err.message);
+            } finally {
+                loading(false);
+                input.value = ''; // Reset input
             }
-            await batch.commit(); alert("Datos importados."); closeModal('modalSettings');
         };
         reader.readAsText(input.files[0]);
     };
